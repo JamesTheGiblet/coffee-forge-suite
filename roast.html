@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoastForge - Coffee Roasting Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            color: #f5e6d3;
+            padding: 10px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #d4a574;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            color: #a8896c;
+            margin-top: 5px;
+        }
+
+        .panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #4a3828;
+        }
+
+        .panel h2 {
+            color: #d4a574;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .controls {
+            display: grid;
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            color: #c9b59a;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #3a2817, #d4a574);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #d4a574;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(212, 165, 116, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #d4a574;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(212, 165, 116, 0.5);
+            border: none;
+        }
+
+        .value-display {
+            color: #d4a574;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        button {
+            background: linear-gradient(135deg, #8b4513, #d2691e);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #4a3828;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #a8896c;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #d4a574;
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        .phase-indicator {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            gap: 5px;
+        }
+
+        .phase {
+            flex: 1;
+            padding: 10px 5px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.85em;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .phase.active {
+            border-color: #d4a574;
+            background: rgba(212, 165, 116, 0.2);
+            box-shadow: 0 0 15px rgba(212, 165, 116, 0.3);
+        }
+
+        .bean-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .bean {
+            width: 80px;
+            height: 120px;
+            border-radius: 40% 40% 50% 50%;
+            position: relative;
+            transition: all 0.5s;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        .bean::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 60%;
+            background: rgba(0,0,0,0.3);
+            border-radius: 2px;
+        }
+
+        .chemical-bars {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .chem-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chem-label {
+            min-width: 100px;
+            color: #c9b59a;
+            font-size: 0.9em;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #4a3828;
+        }
+
+        .bar-fill {
+            height: 100%;
+            transition: width 0.5s;
+            border-radius: 10px;
+        }
+
+        .export-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(139, 69, 19, 0.2);
+            border-radius: 10px;
+            border: 2px dashed #8b4513;
+        }
+
+        .export-data {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #d4a574;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .panel {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>☕ RoastForge</h1>
+            <div class="subtitle">Coffee Roasting Emergence Simulator</div>
+        </header>
+
+        <div class="panel">
+            <h2>Bean Properties</h2>
+            <div class="controls">
+                <div class="control-group">
+                    <label>
+                        <span>Bean Density (Altitude)</span>
+                        <span class="value-display" id="densityValue">0.7 g/cm³</span>
+                    </label>
+                    <input type="range" id="density" min="0.5" max="0.9" step="0.05" value="0.7">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <span>Moisture Content</span>
+                        <span class="value-display" id="moistureValue">11%</span>
+                    </label>
+                    <input type="range" id="moisture" min="8" max="14" step="0.5" value="11">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <span>Batch Size</span>
+                        <span class="value-display" id="batchValue">500g</span>
+                    </label>
+                    <input type="range" id="batch" min="100" max="1000" step="50" value="500">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Roaster Settings</h2>
+            <div class="controls">
+                <div class="control-group">
+                    <label>
+                        <span>Target Temperature</span>
+                        <span class="value-display" id="targetTempValue">220°C</span>
+                    </label>
+                    <input type="range" id="targetTemp" min="190" max="240" step="5" value="220">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <span>Airflow Rate</span>
+                        <span class="value-display" id="airflowValue">50%</span>
+                    </label>
+                    <input type="range" id="airflow" min="30" max="80" step="5" value="50">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <span>Drum Speed</span>
+                        <span class="value-display" id="drumSpeedValue">50 RPM</span>
+                    </label>
+                    <input type="range" id="drumSpeed" min="40" max="70" step="5" value="50">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <button id="startBtn" onclick="toggleRoast()">START ROAST</button>
+        </div>
+
+        <div class="panel">
+            <h2>Bean Transformation</h2>
+            <div class="bean-visual">
+                <div class="bean" id="beanVisual"></div>
+            </div>
+            <div class="phase-indicator">
+                <div class="phase" id="phase1">Drying<br>160-200°C</div>
+                <div class="phase" id="phase2">Maillard<br>160-180°C</div>
+                <div class="phase" id="phase3">1st Crack<br>~196°C</div>
+                <div class="phase" id="phase4">Development<br>200-230°C</div>
+                <div class="phase" id="phase5">2nd Crack<br>~224°C</div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="tempChart" width="800" height="400"></canvas>
+        </div>
+
+        <div class="panel">
+            <h2>Real-Time Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Time</div>
+                    <div class="stat-value" id="timeDisplay">0:00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Temperature</div>
+                    <div class="stat-value" id="tempDisplay">25°C</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Pressure</div>
+                    <div class="stat-value" id="pressureDisplay">0 bar</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">RoR</div>
+                    <div class="stat-value" id="rorDisplay">0°C/min</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Weight Loss</div>
+                    <div class="stat-value" id="weightDisplay">0%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Roast Level</div>
+                    <div class="stat-value" id="roastDisplay">Green</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Chemical Evolution</h2>
+            <div class="chemical-bars">
+                <div class="chem-bar">
+                    <div class="chem-label">Caffeine</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="caffeineBar" style="width: 100%; background: linear-gradient(90deg, #4a3828, #8b4513);"></div>
+                    </div>
+                    <span class="value-display" id="caffeineVal">100%</span>
+                </div>
+                <div class="chem-bar">
+                    <div class="chem-label">Chlorogenic</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="chlorogenicBar" style="width: 100%; background: linear-gradient(90deg, #2d5016, #6b8e23);"></div>
+                    </div>
+                    <span class="value-display" id="chlorogenicVal">100%</span>
+                </div>
+                <div class="chem-bar">
+                    <div class="chem-label">Sugars</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="sugarBar" style="width: 100%; background: linear-gradient(90deg, #8b6914, #daa520);"></div>
+                    </div>
+                    <span class="value-display" id="sugarVal">100%</span>
+                </div>
+                <div class="chem-bar">
+                    <div class="chem-label">Volatiles</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="volatilesBar" style="width: 0%; background: linear-gradient(90deg, #d4a574, #f5deb3);"></div>
+                    </div>
+                    <span class="value-display" id="volatilesVal">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Export to CaffeineForge</h2>
+            <div class="export-section">
+                <button onclick="exportProfile()" style="width: 100%;">Generate Brew Profile</button>
+                <div class="export-data" id="exportData">Complete a roast to generate brew profile...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State variables
+        let isRoasting = false;
+        let roastTime = 0;
+        let temperature = 25;
+        let pressure = 0;
+        let previousTemp = 25;
+        let weightLoss = 0;
+        let firstCrack = false;
+        let secondCrack = false;
+        
+        // Chemistry state
+        let caffeine = 100;
+        let chlorogenic = 100;
+        let sugars = 100;
+        let volatiles = 0;
+        
+        // Data tracking
+        let tempHistory = [];
+        let timeHistory = [];
+        
+        let animationFrame;
+        
+        // Initialize canvas
+        const canvas = document.getElementById('tempChart');
+        const ctx = canvas.getContext('2d');
+        
+        // Control updates
+        document.getElementById('density').addEventListener('input', (e) => {
+            document.getElementById('densityValue').textContent = e.target.value + ' g/cm³';
+        });
+        
+        document.getElementById('moisture').addEventListener('input', (e) => {
+            document.getElementById('moistureValue').textContent = e.target.value + '%';
+        });
+        
+        document.getElementById('batch').addEventListener('input', (e) => {
+            document.getElementById('batchValue').textContent = e.target.value + 'g';
+        });
+        
+        document.getElementById('targetTemp').addEventListener('input', (e) => {
+            document.getElementById('targetTempValue').textContent = e.target.value + '°C';
+        });
+        
+        document.getElementById('airflow').addEventListener('input', (e) => {
+            document.getElementById('airflowValue').textContent = e.target.value + '%';
+        });
+        
+        document.getElementById('drumSpeed').addEventListener('input', (e) => {
+            document.getElementById('drumSpeedValue').textContent = e.target.value + ' RPM';
+        });
+        
+        function toggleRoast() {
+            if (!isRoasting) {
+                startRoast();
+            } else {
+                stopRoast();
+            }
+        }
+        
+        function startRoast() {
+            isRoasting = true;
+            roastTime = 0;
+            temperature = 25;
+            pressure = 0;
+            weightLoss = 0;
+            firstCrack = false;
+            secondCrack = false;
+            caffeine = 100;
+            chlorogenic = 100;
+            sugars = 100;
+            volatiles = 0;
+            tempHistory = [25];
+            timeHistory = [0];
+            
+            document.getElementById('startBtn').textContent = 'STOP ROAST';
+            document.getElementById('startBtn').style.background = 'linear-gradient(135deg, #8b0000, #dc143c)';
+            
+            // Disable controls
+            document.querySelectorAll('input[type="range"]').forEach(input => input.disabled = true);
+            
+            animate();
+        }
+        
+        function stopRoast() {
+            isRoasting = false;
+            document.getElementById('startBtn').textContent = 'START ROAST';
+            document.getElementById('startBtn').style.background = 'linear-gradient(135deg, #8b4513, #d2691e)';
+            
+            // Enable controls
+            document.querySelectorAll('input[type="range"]').forEach(input => input.disabled = false);
+            
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+        }
+        
+        function animate() {
+            if (!isRoasting) return;
+            
+            // Get settings
+            const targetTemp = parseFloat(document.getElementById('targetTemp').value);
+            const density = parseFloat(document.getElementById('density').value);
+            const moisture = parseFloat(document.getElementById('moisture').value);
+            const airflow = parseFloat(document.getElementById('airflow').value);
+            const drumSpeed = parseFloat(document.getElementById('drumSpeed').value);
+            const batchSize = parseFloat(document.getElementById('batch').value);
+            
+            // Time increment (faster simulation)
+            roastTime += 0.1; // 0.1 minutes per frame = 6 seconds
+            
+            // Temperature dynamics with realistic heating curve
+            const thermalMass = batchSize / 500 * (density / 0.7);
+            const heatEfficiency = (airflow / 50) * (drumSpeed / 50);
+            
+            // Multi-phase heating
+            let heatingRate;
+            if (temperature < 150) {
+                // Drying phase - slower due to evaporation
+                heatingRate = (targetTemp - temperature) * 0.03 * heatEfficiency / thermalMass;
+            } else if (temperature < 196) {
+                // Maillard - moderate heating
+                heatingRate = (targetTemp - temperature) * 0.04 * heatEfficiency / thermalMass;
+            } else if (temperature < 224) {
+                // Post first crack - faster due to exothermic
+                heatingRate = (targetTemp - temperature) * 0.05 * heatEfficiency / thermalMass * 1.2;
+            } else {
+                // Late roast - controlled
+                heatingRate = (targetTemp - temperature) * 0.03 * heatEfficiency / thermalMass;
+            }
+            
+            previousTemp = temperature;
+            temperature += heatingRate;
+            
+            // Pressure buildup
+            if (temperature > 150) {
+                pressure = Math.min(15, (temperature - 150) / 10);
+            }
+            
+            // First crack event
+            if (temperature >= 196 && !firstCrack) {
+                firstCrack = true;
+                pressure = Math.max(0, pressure - 5); // Pressure release
+                playSound('crack');
+            }
+            
+            // Second crack event
+            if (temperature >= 224 && !secondCrack) {
+                secondCrack = true;
+                pressure = Math.max(0, pressure - 3);
+                playSound('crack2');
+            }
+            
+            // Weight loss from moisture and volatiles
+            if (temperature > 100) {
+                const moistureLoss = moisture / 100 * Math.min(1, (temperature - 100) / 100);
+                const volatileLoss = Math.max(0, (temperature - 150) / 900);
+                weightLoss = (moistureLoss + volatileLoss) * 100;
+                weightLoss = Math.min(20, weightLoss);
+            }
+            
+            // Chemical evolution
+            if (temperature > 180) {
+                // Caffeine degradation (very slow)
+                caffeine = 100 - (temperature - 180) / 600 * 15;
+                caffeine = Math.max(85, caffeine);
+            }
+            
+            if (temperature > 160) {
+                // Chlorogenic acid degradation
+                chlorogenic = 100 - (temperature - 160) / 800 * 70;
+                chlorogenic = Math.max(30, chlorogenic);
+            }
+            
+            if (temperature > 170) {
+                // Sugar caramelization
+                sugars = 100 - (temperature - 170) / 700 * 25;
+                sugars = Math.max(75, sugars);
+            }
+            
+            if (temperature > 150) {
+                // Volatile compound generation
+                volatiles = Math.min(100, (temperature - 150) / 800 * 100);
+            }
+            
+            // Store history
+            tempHistory.push(temperature);
+            timeHistory.push(roastTime);
+            
+            // Update displays
+            updateDisplays();
+            updateBeanVisual();
+            updatePhaseIndicators();
+            updateChart();
+            updateChemicalBars();
+            
+            // Auto-stop at extreme conditions
+            if (temperature > 245 || roastTime > 25) {
+                stopRoast();
+                alert('Roast complete! ' + (temperature > 245 ? 'Temperature limit reached!' : 'Maximum time reached!'));
+            }
+            
+            animationFrame = requestAnimationFrame(animate);
+        }
+        
+        function updateDisplays() {
+            const mins = Math.floor(roastTime);
+            const secs = Math.floor((roastTime - mins) * 60);
+            document.getElementById('timeDisplay').textContent = 
+                `${mins}:${secs.toString().padStart(2, '0')}`;
+            
+            document.getElementById('tempDisplay').textContent = 
+                Math.round(temperature) + '°C';
+            
+            document.getElementById('pressureDisplay').textContent = 
+                pressure.toFixed(1) + ' bar';
+            
+            const ror = (temperature - previousTemp) * 10; // Per minute
+            document.getElementById('rorDisplay').textContent = 
+                ror.toFixed(1) + '°C/min';
+            
+            document.getElementById('weightDisplay').textContent = 
+                weightLoss.toFixed(1) + '%';
+            
+            // Roast level determination
+            let roastLevel;
+            if (temperature < 196) roastLevel = 'Green';
+            else if (temperature < 205) roastLevel = 'Light';
+            else if (temperature < 215) roastLevel = 'Medium';
+            else if (temperature < 225) roastLevel = 'Med-Dark';
+            else if (temperature < 235) roastLevel = 'Dark';
+            else roastLevel = 'French';
+            
+            document.getElementById('roastDisplay').textContent = roastLevel;
+        }
+        
+        function updateBeanVisual() {
+            const bean = document.getElementById('beanVisual');
+            
+            // Color evolution
+            let color;
+            if (temperature < 160) {
+                color = `rgb(${140 + temperature/3}, ${180 + temperature/4}, ${100 + temperature/5})`;
+            } else if (temperature < 196) {
+                const t = (temperature - 160) / 36;
+                color = `rgb(${180 - t*50}, ${180 - t*80}, ${120 - t*70})`;
+            } else if (temperature < 220) {
+                const t = (temperature - 196) / 24;
+                color = `rgb(${130 - t*50}, ${100 - t*50}, ${50 - t*30})`;
+            } else {
+                const t = Math.min(1, (temperature - 220) / 20);
+                color = `rgb(${80 - t*50}, ${50 - t*30}, ${20 - t*15})`;
+            }
+            
+            bean.style.background = color;
+            
+            // Size expansion
+            const expansion = 1 + (temperature - 25) / 2000;
+            bean.style.transform = `scale(${expansion})`;
+            
+            // Cracking visual
+            if (firstCrack && temperature > 196) {
+                bean.style.boxShadow = 'inset 0 0 30px rgba(0,0,0,0.8), 0 5px 20px rgba(0,0,0,0.5)';
+            }
+            if (secondCrack && temperature > 224) {
+                bean.style.boxShadow = 'inset 0 0 40px rgba(0,0,0,0.9), 0 5px 20px rgba(0,0,0,0.7)';
+            }
+        }
+        
+        function updatePhaseIndicators() {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            
+            if (temperature < 160) {
+                document.getElementById('phase1').classList.add('active');
+            } else if (temperature < 196) {
+                document.getElementById('phase2').classList.add('active');
+            } else if (temperature < 205) {
+                document.getElementById('phase3').classList.add('active');
+            } else if (temperature < 224) {
+                document.getElementById('phase4').classList.add('active');
+            } else {
+                document.getElementById('phase5').classList.add('active');
+            }
+        }
+        
+        function updateChart() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Background
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Grid
+            ctx.strokeStyle = 'rgba(212, 165, 116, 0.2)';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i <= 10; i++) {
+                const y = i * canvas.height / 10;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Axis labels
+            ctx.fillStyle = '#c9b59a';
+            ctx.font = '12px Arial';
+            ctx.fillText('250°C', 10, 20);
+            ctx.fillText('0°C', 10, canvas.height - 10);
+            
+            // Phase zones
+            const zones = [
+                {name: 'Drying', temp: 160, color: 'rgba(100, 149, 237, 0.1)'},
+                {name: '1st Crack', temp: 196, color: 'rgba(255, 215, 0, 0.1)'},
+                {name: '2nd Crack', temp: 224, color: 'rgba(255, 140, 0, 0.1)'}
+            ];
+            
+            zones.forEach(zone => {
+                const y = canvas.height - (zone.temp / 250 * canvas.height);
+                ctx.fillStyle = zone.color;
+                ctx.fillRect(0, y - 20, canvas.width, 40);
+                ctx.strokeStyle = zone.color.replace('0.1', '0.5');
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            });
+            
+            // Temperature curve
+            if (tempHistory.length > 1) {
+                const maxTime = Math.max(20, roastTime);
+                
+                ctx.strokeStyle = '#d4a574';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                for (let i = 0; i < tempHistory.length; i++) {
+                    const x = (timeHistory[i] / maxTime) * canvas.width;
+                    const y = canvas.height - (tempHistory[i] / 250 * canvas.height);
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                
+                ctx.stroke();
+                
+                // Gradient fill
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.lineTo(0, canvas.height);
+                ctx.closePath();
+                
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, 'rgba(212, 165, 116, 0.3)');
+                gradient.addColorStop(1, 'rgba(212, 165, 116, 0)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+        }
+        
+        function updateChemicalBars() {
+            document.getElementById('caffeineBar').style.width = caffeine + '%';
+            document.getElementById('caffeineVal').textContent = Math.round(caffeine) + '%';
+            
+            document.getElementById('chlorogenicBar').style.width = chlorogenic + '%';
+            document.getElementById('chlorogenicVal').textContent = Math.round(chlorogenic) + '%';
+            
+            document.getElementById('sugarBar').style.width = sugars + '%';
+            document.getElementById('sugarVal').textContent = Math.round(sugars) + '%';
+            
+            document.getElementById('volatilesBar').style.width = volatiles + '%';
+            document.getElementById('volatilesVal').textContent = Math.round(volatiles) + '%';
+        }
+        
+        function playSound(type) {
+            // Audio context for crack sounds
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'crack') {
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            } else {
+                oscillator.frequency.value = 1200;
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            }
+            
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.1);
+        }
+        
+        function exportProfile() {
+            if (tempHistory.length < 10) {
+                document.getElementById('exportData').textContent = 
+                    'Complete a roast to generate brew profile...';
+                return;
+            }
+            
+            const finalTemp = temperature;
+            const finalTime = roastTime;
+            
+            // Determine roast characteristics
+            let roastLevel, extractability, grindSize, brewTemp, brewTime;
+            
+            if (finalTemp < 205) {
+                roastLevel = 'Light';
+                extractability = 0.85;
+                grindSize = 'Medium-Fine';
+                brewTemp = 93;
+                brewTime = 4.0;
+            } else if (finalTemp < 215) {
+                roastLevel = 'Medium';
+                extractability = 0.90;
+                grindSize = 'Medium';
+                brewTemp = 90;
+                brewTime = 3.5;
+            } else if (finalTemp < 225) {
+                roastLevel = 'Medium-Dark';
+                extractability = 0.95;
+                grindSize = 'Medium-Coarse';
+                brewTemp = 88;
+                brewTime = 3.0;
+            } else {
+                roastLevel = 'Dark';
+                extractability = 1.0;
+                grindSize = 'Coarse';
+                brewTemp = 85;
+                brewTime = 2.5;
+            }
+            
+            const profile = {
+                roastProfile: {
+                    level: roastLevel,
+                    finalTemp: Math.round(finalTemp),
+                    roastTime: finalTime.toFixed(1),
+                    weightLoss: weightLoss.toFixed(1) + '%',
+                    firstCrack: firstCrack,
+                    secondCrack: secondCrack
+                },
+                chemistry: {
+                    caffeineRetention: Math.round(caffeine) + '%',
+                    chlorogenicAcid: Math.round(chlorogenic) + '%',
+                    sugarContent: Math.round(sugars) + '%',
+                    volatileCompounds: Math.round(volatiles) + '%'
+                },
+                brewRecommendations: {
+                    grindSize: grindSize,
+                    waterTemp: brewTemp + '°C',
+                    brewTime: brewTime + ' min',
+                    coffeeWaterRatio: '1:' + (15 + (finalTemp - 200) / 10).toFixed(1),
+                    extractability: (extractability * 100).toFixed(0) + '%'
+                },
+                caffeineForgeData: {
+                    caffeinePerGram: (11 - (100 - caffeine) / 100 * 1.5).toFixed(1) + 'mg',
+                    extractionEfficiency: extractability,
+                    peakTime: '45-60min',
+                    halfLife: '5-6hr'
+                }
+            };
+            
+            document.getElementById('exportData').textContent = 
+                JSON.stringify(profile, null, 2);
+        }
+        
+        // Initialize chart
+        updateChart();
+    </script>
+</body>
+</html>
