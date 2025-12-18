@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coffee Forge Suite - Master Hub</title>
+    <style>
+        :root {
+            --bg: #0a0604;
+            --panel: #1a1410;
+            --accent: #a67c52;
+            --text: #f5e6d3;
+        }
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* Persistent Navigation */
+        nav {
+            width: 200px;
+            background: var(--panel);
+            border-right: 2px solid #3a2817;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: 0.3s;
+            color: #8a6d4f;
+            text-decoration: none;
+        }
+        .nav-item:hover { background: rgba(166, 124, 82, 0.1); }
+        .nav-item.active {
+            border-left-color: var(--accent);
+            color: var(--accent);
+            background: rgba(166, 124, 82, 0.2);
+        }
+        /* Content Area */
+        main { flex: 1; position: relative; }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+        iframe.active { display: block; }
+        
+        .status-bar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.8);
+            padding: 5px 20px;
+            font-size: 12px;
+            display: flex;
+            gap: 20px;
+            border-top: 1px solid #3a2817;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div style="padding: 0 25px 20px; font-weight: bold; color: var(--accent);">COFFEE FORGE</div>
+    <a href="#" class="nav-item active" onclick="showForge('roast')">🔥 RoastForge</a>
+    <a href="#" class="nav-item" onclick="showForge('grind')">⚙️ GrindForge</a>
+    <a href="#" class="nav-item" onclick="showForge('brew')">☕ BrewForge</a>
+    <a href="#" class="nav-item" onclick="showForge('caffeine')">🧬 CaffeineForge</a>
+</nav>
+
+<main id="forgeContainer">
+    <iframe id="roastFrame" src="roast.html" class="active"></iframe>
+    <iframe id="grindFrame" src="grind.html"></iframe>
+    <iframe id="brewFrame" src="brew.html"></iframe>
+    <iframe id="caffeineFrame" src="caffeine.html"></iframe>
+    
+    <div class="status-bar">
+        <span>Current State: <strong id="stateStatus">Ready</strong></span>
+        <span id="dataFlow">Pipeline: Bean ⮕ Physics ⮕ Human</span>
+    </div>
+</main>
+
+<script>
+    function showForge(id) {
+        // Update Tabs
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        
+        // Update View
+        document.querySelectorAll('iframe').forEach(el => el.classList.remove('active'));
+        document.getElementById(id + 'Frame').classList.add('active');
+        
+        // Trigger a "Refresh" logic for data handoff
+        const frame = document.getElementById(id + 'Frame');
+        frame.contentWindow.postMessage('syncData', '*');
+    }
+
+    // Global Listener for Data Handoff
+    window.addEventListener('message', (event) => {
+        if (event.data.type === 'FORGE_EXPORT') {
+            const module = event.data.module;
+            const data = event.data.payload;
+            
+            // Save to LocalStorage for the other iframes to pick up
+            localStorage.setItem(`FORGE_${module}_DATA`, JSON.stringify(data));
+            document.getElementById('stateStatus').textContent = `Data received from ${module}`;
+            
+            console.log(`Pipeline Sync: ${module} data updated.`, data);
+        }
+    });
+</script>
+</body>
+</html>
