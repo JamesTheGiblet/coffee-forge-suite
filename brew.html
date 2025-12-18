@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BrewForge - Coffee Brewing Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            color: #f5e6d3;
+            padding: 10px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #c89665;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            color: #a8896c;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        .panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #4a3828;
+        }
+
+        .panel h2 {
+            color: #c89665;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .method-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .method-btn {
+            background: rgba(200, 150, 101, 0.2);
+            border: 2px solid #c89665;
+            color: #c89665;
+            padding: 12px 8px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .method-btn:hover {
+            background: rgba(200, 150, 101, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .method-btn.active {
+            background: linear-gradient(135deg, #c89665, #8b6914);
+            color: white;
+            box-shadow: 0 0 20px rgba(200, 150, 101, 0.5);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        label {
+            color: #c9b59a;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #3a2817, #c89665);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #c89665;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(200, 150, 101, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #c89665;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(200, 150, 101, 0.5);
+            border: none;
+        }
+
+        .value-display {
+            color: #c89665;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        button {
+            background: linear-gradient(135deg, #8b4513, #d2691e);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.4);
+            width: 100%;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .brew-visual {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vessel {
+            position: relative;
+            width: 150px;
+            transition: all 0.5s;
+        }
+
+        .vessel-espresso {
+            height: 100px;
+            background: linear-gradient(180deg, transparent 0%, #2c1810 50%);
+            border: 3px solid #666;
+            border-radius: 5px 5px 30px 30px;
+        }
+
+        .vessel-pourover {
+            width: 0;
+            height: 0;
+            border-left: 75px solid transparent;
+            border-right: 75px solid transparent;
+            border-bottom: 150px solid rgba(44, 24, 16, 0.6);
+            border-radius: 10px;
+        }
+
+        .vessel-french {
+            height: 200px;
+            background: linear-gradient(180deg, transparent 0%, rgba(44, 24, 16, 0.6) 100%);
+            border: 3px solid #666;
+            border-radius: 10px;
+        }
+
+        .vessel-aeropress {
+            height: 180px;
+            background: linear-gradient(180deg, transparent 0%, rgba(44, 24, 16, 0.6) 100%);
+            border: 3px solid #666;
+            border-radius: 50px 50px 10px 10px;
+        }
+
+        .coffee-level {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(139, 69, 19, 0.8), rgba(101, 67, 33, 0.9));
+            transition: all 1s;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .water-stream {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 0;
+            background: linear-gradient(180deg, rgba(135, 206, 235, 0.8), transparent);
+            transition: height 0.5s;
+        }
+
+        .pressure-gauge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #c89665;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #4a3828;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #a8896c;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #c89665;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .extraction-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin: 10px 0;
+        }
+
+        .extraction-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d32f2f 0%, #ffa726 20%, #66bb6a 50%, #ffa726 80%, #d32f2f 100%);
+            transition: all 0.5s;
+            position: relative;
+        }
+
+        .extraction-marker {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: white;
+            box-shadow: 0 0 5px white;
+        }
+
+        .extraction-label {
+            position: absolute;
+            top: -20px;
+            font-size: 0.75em;
+            color: #a8896c;
+        }
+
+        canvas {
+            width: 100%;
+            height: 200px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .phase-indicator {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            gap: 5px;
+        }
+
+        .phase {
+            flex: 1;
+            padding: 10px 5px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.75em;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .phase.active {
+            border-color: #c89665;
+            background: rgba(200, 150, 101, 0.2);
+            box-shadow: 0 0 15px rgba(200, 150, 101, 0.3);
+        }
+
+        .quality-indicator {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .quality-box {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            border: 2px solid rgba(200, 150, 101, 0.3);
+            transition: all 0.3s;
+        }
+
+        .quality-box.good {
+            background: rgba(102, 187, 106, 0.2);
+            border-color: #66bb6a;
+        }
+
+        .quality-box.warn {
+            background: rgba(255, 167, 38, 0.2);
+            border-color: #ffa726;
+        }
+
+        .quality-box.bad {
+            background: rgba(211, 47, 47, 0.2);
+            border-color: #d32f2f;
+        }
+
+        .export-box {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #4a3828;
+            margin-top: 15px;
+        }
+
+        .export-data {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.8em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            color: #a8896c;
+        }
+
+        @keyframes brewing {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .brewing-indicator {
+            animation: brewing 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>☕ BrewForge</h1>
+            <div class="subtitle">Coffee Brewing Physics Simulator</div>
+        </header>
+
+        <!-- Method Selection -->
+        <div class="panel">
+            <h2>Brew Method</h2>
+            <div class="method-selector">
+                <button class="method-btn active" onclick="selectMethod('espresso')">Espresso</button>
+                <button class="method-btn" onclick="selectMethod('pourover')">Pour Over</button>
+                <button class="method-btn" onclick="selectMethod('french')">French Press</button>
+                <button class="method-btn" onclick="selectMethod('aeropress')">AeroPress</button>
+                <button class="method-btn" onclick="selectMethod('coldbrew')">Cold Brew</button>
+                <button class="method-btn" onclick="selectMethod('moka')">Moka Pot</button>
+            </div>
+        </div>
+
+        <!-- Parameters -->
+        <div class="panel">
+            <h2>Brew Parameters</h2>
+            
+            <div class="control-group">
+                <label>
+                    <span>Water Temperature</span>
+                    <span class="value-display" id="tempDisplay">93°C</span>
+                </label>
+                <input type="range" id="waterTemp" min="20" max="100" value="93" oninput="updateParameters()">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <span>Coffee Dose</span>
+                    <span class="value-display" id="doseDisplay">18g</span>
+                </label>
+                <input type="range" id="coffeeDose" min="5" max="50" value="18" step="0.5" oninput="updateParameters()">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <span>Water Volume</span>
+                    <span class="value-display" id="waterDisplay">36ml</span>
+                </label>
+                <input type="range" id="waterVolume" min="30" max="1000" value="36" step="10" oninput="updateParameters()">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <span>Brew Time</span>
+                    <span class="value-display" id="timeDisplay">25s</span>
+                </label>
+                <input type="range" id="brewTime" min="10" max="720" value="25" oninput="updateParameters()">
+            </div>
+
+            <div class="control-group" id="pressureControl">
+                <label>
+                    <span>Pressure</span>
+                    <span class="value-display" id="pressureDisplay">9 bar</span>
+                </label>
+                <input type="range" id="pressure" min="0" max="15" value="9" step="0.5" oninput="updateParameters()">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <span>Agitation</span>
+                    <span class="value-display" id="agitationDisplay">Low</span>
+                </label>
+                <input type="range" id="agitation" min="0" max="100" value="10" oninput="updateParameters()">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <span>Water Hardness (ppm)</span>
+                    <span class="value-display" id="hardnessDisplay">100</span>
+                </label>
+                <input type="range" id="waterHardness" min="0" max="300" value="100" oninput="updateParameters()">
+            </div>
+        </div>
+
+        <!-- Visual -->
+        <div class="panel">
+            <h2>Brewing Process</h2>
+            <div class="brew-visual" id="brewVisual">
+                <div class="pressure-gauge" id="pressureGauge">
+                    <div style="font-size:0.8em;">Pressure</div>
+                    <div style="font-size:1.5em;color:#c89665;" id="currentPressure">0 bar</div>
+                </div>
+                <div class="water-stream" id="waterStream"></div>
+                <div class="vessel vessel-espresso" id="vessel">
+                    <div class="coffee-level" id="coffeeLevel"></div>
+                </div>
+            </div>
+
+            <div class="phase-indicator">
+                <div class="phase" id="phase1">Pre-wet</div>
+                <div class="phase" id="phase2">Bloom</div>
+                <div class="phase" id="phase3">Extract</div>
+                <div class="phase" id="phase4">Finish</div>
+            </div>
+
+            <button onclick="startBrew()" id="brewBtn">Start Brewing</button>
+        </div>
+
+        <!-- Extraction -->
+        <div class="panel">
+            <h2>Extraction Analysis</h2>
+            
+            <div class="extraction-bar">
+                <div class="extraction-marker" style="left:18%;">
+                    <div class="extraction-label">18%</div>
+                </div>
+                <div class="extraction-marker" style="left:22%;">
+                    <div class="extraction-label">22%</div>
+                </div>
+                <div class="extraction-fill" id="extractionFill" style="width:20%;">
+                    <div style="position:absolute;right:5px;top:50%;transform:translateY(-50%);font-size:0.9em;" id="extractionText">20%</div>
+                </div>
+            </div>
+
+            <div class="quality-indicator">
+                <div class="quality-box" id="balanceBox">
+                    <div>⚖️</div>
+                    <div>Balance</div>
+                </div>
+                <div class="quality-box" id="bodyBox">
+                    <div>💪</div>
+                    <div>Body</div>
+                </div>
+                <div class="quality-box" id="clarityBox">
+                    <div>💎</div>
+                    <div>Clarity</div>
+                </div>
+                <div class="quality-box" id="sweetnessBox">
+                    <div>🍯</div>
+                    <div>Sweet</div>
+                </div>
+                <div class="quality-box" id="brightnessBox">
+                    <div>✨</div>
+                    <div>Bright</div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">TDS</div>
+                    <div class="stat-value" id="tdsValue">1.35%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Ratio</div>
+                    <div class="stat-value" id="ratioValue">1:2</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Flow Rate</div>
+                    <div class="stat-value" id="flowValue">1.4 ml/s</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Yield</div>
+                    <div class="stat-value" id="yieldValue">36ml</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature -->
+        <div class="panel">
+            <h2>Temperature Stability</h2>
+            <canvas id="tempChart"></canvas>
+            <div class="stats-grid" style="margin-top:15px;">
+                <div class="stat-box">
+                    <div class="stat-label">Avg Temp</div>
+                    <div class="stat-value" id="avgTemp">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Temp Drop</div>
+                    <div class="stat-value" id="tempDrop">-</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Stability</div>
+                    <div class="stat-value" id="stability">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export -->
+        <div class="panel">
+            <h2>Brew Profile Export</h2>
+            <button onclick="exportProfile()">Generate CaffeineForge Data</button>
+            <div class="export-box" style="margin-top:15px;">
+                <pre class="export-data" id="exportData">Complete a brew to generate profile...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMethod = 'espresso';
+        let isBrewing = false;
+        let brewProgress = 0;
+        let tempHistory = [];
+        
+        const canvas = document.getElementById('tempChart');
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.offsetWidth * 2;
+        canvas.height = 400;
+
+        const methodPresets = {
+            espresso: { temp: 93, dose: 18, water: 36, time: 25, pressure: 9, agitation: 10, vessel: 'vessel-espresso' },
+            pourover: { temp: 92, dose: 15, water: 250, time: 180, pressure: 0, agitation: 60, vessel: 'vessel-pourover' },
+            french: { temp: 92, dose: 20, water: 300, time: 240, pressure: 0, agitation: 30, vessel: 'vessel-french' },
+            aeropress: { temp: 85, dose: 15, water: 220, time: 90, pressure: 0.5, agitation: 70, vessel: 'vessel-aeropress' },
+            coldbrew: { temp: 20, dose: 80, water: 1000, time: 720, pressure: 0, agitation: 20, vessel: 'vessel-french' },
+            moka: { temp: 95, dose: 20, water: 200, time: 180, pressure: 1.5, agitation: 0, vessel: 'vessel-espresso' }
+        };
+
+        function selectMethod(method) {
+            currentMethod = method;
+            const preset = methodPresets[method];
+            
+            document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const vessel = document.getElementById('vessel');
+            vessel.className = 'vessel ' + preset.vessel;
+            
+            document.getElementById('waterTemp').value = preset.temp;
+            document.getElementById('coffeeDose').value = preset.dose;
+            document.getElementById('waterVolume').value = preset.water;
+            document.getElementById('brewTime').value = preset.time;
+            document.getElementById('pressure').value = preset.pressure;
+            document.getElementById('agitation').value = preset.agitation;
+            
+            document.getElementById('pressureControl').style.display = 
+                (method === 'espresso' || method === 'aeropress' || method === 'moka') ? 'flex' : 'none';
+            
+            document.getElementById('pressureGauge').style.display =
+                (method === 'espresso' || method === 'moka') ? 'block' : 'none';
+            
+            updateParameters();
+        }
+
+        function updateParameters() {
+            const temp = parseFloat(document.getElementById('waterTemp').value);
+            const dose = parseFloat(document.getElementById('coffeeDose').value);
+            const water = parseFloat(document.getElementById('waterVolume').value);
+            const time = parseFloat(document.getElementById('brewTime').value);
+            const pressure = parseFloat(document.getElementById('pressure').value);
+            const agitation = parseFloat(document.getElementById('agitation').value);
+            const hardness = parseFloat(document.getElementById('waterHardness').value);
+            
+            document.getElementById('tempDisplay').textContent = temp + '°C';
+            document.getElementById('doseDisplay').textContent = dose + 'g';
+            document.getElementById('waterDisplay').textContent = water + 'ml';
+            document.getElementById('timeDisplay').textContent = time < 60 ? time + 's' : (time / 60).toFixed(1) + 'min';
+            document.getElementById('pressureDisplay').textContent = pressure + ' bar';
+            document.getElementById('agitationDisplay').textContent = agitation < 33 ? 'Low' : agitation < 66 ? 'Medium' : 'High';
+            document.getElementById('hardnessDisplay').textContent = hardness + ' ppm';
+            
+            calculateExtraction();
+        }
+
+        function calculateExtraction() {
+            const temp = parseFloat(document.getElementById('waterTemp').value);
+            const dose = parseFloat(document.getElementById('coffeeDose').value);
+            const water = parseFloat(document.getElementById('waterVolume').value);
+            const time = parseFloat(document.getElementById('brewTime').value);
+            const pressure = parseFloat(document.getElementById('pressure').value);
+            const agitation = parseFloat(document.getElementById('agitation').value);
+            const hardness = parseFloat(document.getElementById('waterHardness').value);
+            
+            const tempFactor = Math.min(1.0, (temp - 70) / 30);
+            const timeFactor = Math.log10(time + 1) / Math.log10(721);
+            const pressureFactor = 1 + (pressure / 10) * 0.3;
+            const agitationFactor = 1 + (agitation / 100) * 0.15;
+            const hardnessFactor = 1 + ((150 - Math.abs(hardness - 150)) / 150) * 0.1;
+            const ratio = water / dose;
+            const ratioFactor = Math.min(1.2, 20 / ratio);
+            
+            let extraction = 15 + (tempFactor * 5) + (timeFactor * 8) + 
+                           ((pressureFactor - 1) * 3) + ((agitationFactor - 1) * 2) + 
+                           ((ratioFactor - 0.8) * 3);
+            
+            extraction = Math.max(10, Math.min(30, extraction));
+            
+            const extractedMass = (dose * extraction / 100);
+            const tds = (extractedMass / water) * 100;
+            let flowRate = water / time;
+            if (currentMethod === 'espresso') flowRate = flowRate * (pressure / 9);
+            const yield_ml = currentMethod === 'espresso' ? water : water * 0.95;
+            
+            document.getElementById('extractionText').textContent = extraction.toFixed(1) + '%';
+            document.getElementById('extractionFill').style.width = (extraction / 30 * 100) + '%';
+            document.getElementById('tdsValue').textContent = tds.toFixed(2) + '%';
+            document.getElementById('ratioValue').textContent = '1:' + ratio.toFixed(1);
+            document.getElementById('flowValue').textContent = flowRate.toFixed(1) + ' ml/s';
+            document.getElementById('yieldValue').textContent = yield_ml.toFixed(0) + 'ml';
+            
+            updateQualityIndicators(extraction, tds, temp, agitation, hardness);
+            
+            return extraction;
+        }
+
+        function updateQualityIndicators(extraction, tds, temp, agitation, hardness) {
+            const balanceBox = document.getElementById('balanceBox');
+            balanceBox.className = extraction >= 18 && extraction <= 22 ? 'quality-box good' :
+                                  extraction >= 16 && extraction <= 24 ? 'quality-box warn' : 'quality-box bad';
+            
+            const bodyBox = document.getElementById('bodyBox');
+            bodyBox.className = tds > 1.3 ? 'quality-box good' : tds > 1.0 ? 'quality-box warn' : 'quality-box bad';
+            
+            const clarityBox = document.getElementById('clarityBox');
+            clarityBox.className = agitation < 50 && extraction >= 18 && extraction <= 22 ? 'quality-box good' :
+                                  extraction >= 17 && extraction <= 23 ? 'quality-box warn' : 'quality-box bad';
+            
+            const sweetnessBox = document.getElementById('sweetnessBox');
+            sweetnessBox.className = temp >= 88 && temp <= 94 && extraction >= 19 && extraction <= 21 ? 'quality-box good' :
+                                     temp >= 85 && temp <= 96 ? 'quality-box warn' : 'quality-box bad';
+            
+            const brightnessBox = document.getElementById('brightnessBox');
+            brightnessBox.className = temp >= 92 && hardness >= 80 && hardness <= 150 ? 'quality-box good' :
+                                     temp >= 88 ? 'quality-box warn' : 'quality-box bad';
+        }
+
+        function startBrew() {
+            if (isBrewing) return;
+            
+            isBrewing = true;
+            brewProgress = 0;
+            tempHistory = [];
+            
+            const btn = document.getElementById('brewBtn');
+            btn.textContent = 'Brewing...';
+            btn.classList.add('brewing-indicator');
+            btn.disabled = true;
+            
+            const brewTime = parseFloat(document.getElementById('brewTime').value);
+            const steps = Math.min(100, brewTime);
+            const stepDuration = (brewTime * 1000) / steps;
+            
+            let step = 0;
+            const brewInterval = setInterval(() => {
+                brewProgress = step / steps;
+                updateBrewVisual(brewProgress);
+                recordBrewData(brewProgress);
+                
+                step++;
+                if (step > steps) {
+                    clearInterval(brewInterval);
+                    isBrewing = false;
+                    btn.textContent = 'Brew Complete!';
+                    btn.classList.remove('brewing-indicator');
+                    setTimeout(() => {
+                        btn.textContent = 'Start Brewing';
+                        btn.disabled = false;
+                    }, 2000);
+                    drawTempChart();
+                }
+            }, stepDuration);
+        }
+
+        function updateBrewVisual(progress) {
+            document.getElementById('coffeeLevel').style.height = (progress * 80) + '%';
+            document.getElementById('waterStream').style.height = progress < 0.9 ? '30px' : '0';
+            
+            const pressure = parseFloat(document.getElementById('pressure').value);
+            if (currentMethod === 'espresso' || currentMethod === 'moka') {
+                const currentPressure = pressure * Math.min(1, progress * 2);
+                document.getElementById('currentPressure').textContent = currentPressure.toFixed(1) + ' bar';
+            }
+            
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            if (progress < 0.15) document.getElementById('phase1').classList.add('active');
+            else if (progress < 0.35) document.getElementById('phase2').classList.add('active');
+            else if (progress < 0.85) document.getElementById('phase3').classList.add('active');
+            else document.getElementById('phase4').classList.add('active');
+        }
+
+        function recordBrewData(progress) {
+            const startTemp = parseFloat(document.getElementById('waterTemp').value);
+            const dose = parseFloat(document.getElementById('coffeeDose').value);
+            const water = parseFloat(document.getElementById('waterVolume').value);
+            
+            const thermalMass = dose * 0.15;
+            const ambientLoss = progress * 0.5;
+            const massRatio = dose / water;
+            
+            let tempDrop = (thermalMass * massRatio * 10) + (ambientLoss * 5);
+            if (currentMethod === 'coldbrew') tempDrop = 0;
+            
+            const currentTemp = startTemp - tempDrop;
+            tempHistory.push({ time: progress, temp: currentTemp });
+        }
+
+        function drawTempChart() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = 'rgba(200, 150, 101, 0.2)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 10; i++) {
+                const y = i * canvas.height / 10;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            if (tempHistory.length < 2) return;
+            
+            const maxTemp = Math.max(...tempHistory.map(d => d.temp));
+            const minTemp = Math.min(...tempHistory.map(d => d.temp));
+            const tempRange = maxTemp - minTemp + 10;
+            
+            ctx.strokeStyle = '#c89665';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            tempHistory.forEach((data, i) => {
+                const x = data.time * canvas.width;
+                const y = canvas.height - ((data.temp - minTemp + 5) / tempRange * canvas.height);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            
+            ctx.stroke();
+            
+            ctx.fillStyle = '#c9b59a';
+            ctx.font = '24px Arial';
+            ctx.fillText(maxTemp.toFixed(1) + '°C', 20, 40);
+            ctx.fillText(minTemp.toFixed(1) + '°C', 20, canvas.height - 20);
+            
+            const avgTemp = tempHistory.reduce((sum, d) => sum + d.temp, 0) / tempHistory.length;
+            const tempDrop = maxTemp - minTemp;
+            
+            document.getElementById('avgTemp').textContent = avgTemp.toFixed(1) + '°C';
+            document.getElementById('tempDrop').textContent = '-' + tempDrop.toFixed(1) + '°C';
+            
+            let stability = 'Excellent';
+            if (tempDrop > 5) stability = 'Good';
+            if (tempDrop > 10) stability = 'Fair';
+            if (tempDrop > 15) stability = 'Poor';
+            document.getElementById('stability').textContent = stability;
+        }
+
+        function exportProfile() {
+            if (tempHistory.length === 0) {
+                document.getElementById('exportData').textContent = 'Complete a brew to generate profile...';
+                return;
+            }
+            
+            const temp = parseFloat(document.getElementById('waterTemp').value);
+            const dose = parseFloat(document.getElementById('coffeeDose').value);
+            const water = parseFloat(document.getElementById('waterVolume').value);
+            const time = parseFloat(document.getElementById('brewTime').value);
+            const extraction = parseFloat(document.getElementById('extractionText').textContent);
+            const tds = parseFloat(document.getElementById('tdsValue').textContent);
+            const ratio = document.getElementById('ratioValue').textContent;
+            
+            const profile = {
+                brewProfile: {
+                    method: currentMethod,
+                    waterTemp: temp + '°C',
+                    coffeeDose: dose + 'g',
+                    waterVolume: water + 'ml',
+                    brewTime: time < 60 ? time + 's' : (time/60).toFixed(1) + 'min',
+                    ratio: ratio,
+                    extraction: extraction.toFixed(1) + '%',
+                    tds: tds.toFixed(2) + '%'
+                },
+                qualityMetrics: {
+                    balance: document.getElementById('balanceBox').className.includes('good') ? 'Good' :
+                             document.getElementById('balanceBox').className.includes('warn') ? 'Fair' : 'Poor',
+                    body: document.getElementById('bodyBox').className.includes('good') ? 'Full' :
+                          document.getElementById('bodyBox').className.includes('warn') ? 'Medium' : 'Light',
+                    clarity: document.getElementById('clarityBox').className.includes('good') ? 'Clear' :
+                             document.getElementById('clarityBox').className.includes('warn') ? 'Good' : 'Muddy',
+                    temperatureStability: document.getElementById('stability').textContent
+                },
+                caffeineForgeData: {
+                    extractionEfficiency: (extraction / 22).toFixed(2),
+                    estimatedCaffeine: (dose * 11 * (extraction / 100)).toFixed(1) + 'mg',
+                    bioavailability: temp > 85 ? 'High' : temp > 70 ? 'Medium' : 'Low',
+                    absorptionRate: currentMethod === 'espresso' ? 'Fast' : 
+                                  currentMethod === 'coldbrew' ? 'Slow' : 'Medium',
+                    recommendations: extraction >= 18 && extraction <= 22 ?
+                        'Optimal extraction - balanced and flavorful' :
+                        extraction < 18 ?
+                        'Under-extracted - increase time, temp, or agitation' :
+                        'Over-extracted - reduce time, temp, or grind finer'
+                }
+            };
+            
+            document.getElementById('exportData').textContent = JSON.stringify(profile, null, 2);
+        }
+
+        updateParameters();
+        selectMethod('espresso');
+    </script>
+</body>
+</html>
