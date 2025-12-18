@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TasteForge - Sensory Evaluation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            color: #f5e6d3;
+            padding: 10px;
+            min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        h1 { font-size: 2em; color: #d4a574; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .subtitle { color: #a8896c; margin-top: 5px; }
+        .panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #4a3828;
+        }
+        .panel h2 { color: #d4a574; margin-bottom: 15px; font-size: 1.3em; }
+        
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .score-item {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #4a3828;
+        }
+        .score-label { color: #c9b59a; font-size: 0.9em; margin-bottom: 5px; display: block; }
+        .score-input { width: 100%; }
+        .score-val { float: right; color: #d4a574; font-weight: bold; }
+        
+        .flavor-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .tag {
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            border: 1px solid #4a3828;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+        .tag:hover { background: rgba(255,255,255,0.2); }
+        .tag.selected {
+            background: #d4a574;
+            color: #1a0f0a;
+            border-color: #d4a574;
+        }
+        
+        .total-score {
+            text-align: center;
+            font-size: 3em;
+            font-weight: bold;
+            color: #d4a574;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(212, 165, 116, 0.3);
+        }
+        
+        .import-section {
+            background: rgba(139, 69, 19, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px dashed #8b4513;
+            margin-bottom: 20px;
+        }
+        .import-status {
+            color: #d4a574;
+            font-family: monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #8b4513, #d2691e);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.4);
+        }
+        button:hover { transform: translateY(-2px); }
+        
+        .export-data {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.8em;
+            color: #d4a574;
+            white-space: pre-wrap;
+            margin-top: 15px;
+        }
+
+        .premium-btn {
+            background: linear-gradient(135deg, #1a0f0a, #2c1810);
+            border: 1px solid #5d4037;
+            color: #8a6d4f;
+            margin-top: 10px;
+        }
+        .premium-btn:hover {
+            border-color: #d4a574;
+            color: #d4a574;
+        }
+
+        /* Premium Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            margin: 10% auto; 
+            padding: 30px; 
+            border: 2px solid #d4a574;
+            border-radius: 15px;
+            width: 90%; 
+            max-width: 500px;
+            color: #f5e6d3;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(212, 165, 116, 0.15);
+            position: relative;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-modal {
+            color: #8a6d4f;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #d4a574; }
+
+        .premium-features { list-style: none; text-align: left; margin: 25px 0; padding: 0 10px; }
+        .premium-features li { margin: 12px 0; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
+        .premium-features i { color: #d4a574; }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #d4a574, #8b4513);
+            color: #2c1810;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+        .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 165, 116, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>👅 TasteForge</h1>
+            <div class="subtitle">Sensory Evaluation & Cupping</div>
+        </header>
+        
+        <div class="panel">
+            <h2>Pipeline Context</h2>
+            <div class="import-section">
+                <div class="import-status" id="importStatus">Waiting for brew data...</div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Cupping Score (SCAA)</h2>
+            <div class="total-score" id="finalScore">80.0</div>
+            <div class="score-grid">
+                <div class="score-item"><label class="score-label">Aroma <span class="score-val" id="val-aroma">8.0</span></label><input type="range" class="score-input" id="in-aroma" min="6" max="10" step="0.25" value="8" oninput="updateScore()"></div>
+                <div class="score-item"><label class="score-label">Flavor <span class="score-val" id="val-flavor">8.0</span></label><input type="range" class="score-input" id="in-flavor" min="6" max="10" step="0.25" value="8" oninput="updateScore()"></div>
+                <div class="score-item"><label class="score-label">Aftertaste <span class="score-val" id="val-after">8.0</span></label><input type="range" class="score-input" id="in-after" min="6" max="10" step="0.25" value="8" oninput="updateScore()"></div>
+                <div class="score-item"><label class="score-label">Acidity <span class="score-val" id="val-acid">8.0</span></label><input type="range" class="score-input" id="in-acid" min="6" max="10" step="0.25" value="8" oninput="updateScore()"></div>
+                <div class="score-item"><label class="score-label">Body <span class="score-val" id="val-body">8.0</span></label><input type="range" class="score-input" id="in-body" min="6" max="10" step="0.25" value="8" oninput="updateScore()"></div>
+                <div class="score-item"><label class="score-label">Balance <span class="score-val" id="val-bal">8.0</span></label><input type="range" class="score-input" id="in-bal" min="6" max="10" step="0.25" value="8" oninput="updateScore()"></div>
+                <div class="score-item"><label class="score-label">Sweetness <span class="score-val" id="val-sweet">10</span></label><input type="range" class="score-input" id="in-sweet" min="0" max="10" step="2" value="10" oninput="updateScore()"></div>
+                <div class="score-item"><label class="score-label">Clean Cup <span class="score-val" id="val-clean">10</span></label><input type="range" class="score-input" id="in-clean" min="0" max="10" step="2" value="10" oninput="updateScore()"></div>
+                <div class="score-item"><label class="score-label">Uniformity <span class="score-val" id="val-uni">10</span></label><input type="range" class="score-input" id="in-uni" min="0" max="10" step="2" value="10" oninput="updateScore()"></div>
+                <div class="score-item"><label class="score-label">Overall <span class="score-val" id="val-over">8.0</span></label><input type="range" class="score-input" id="in-over" min="6" max="10" step="0.25" value="8" oninput="updateScore()"></div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Flavor Notes</h2>
+            <div class="flavor-tags" id="tagContainer">
+                <div class="tag" onclick="toggleTag(this)">Berry</div><div class="tag" onclick="toggleTag(this)">Citrus</div><div class="tag" onclick="toggleTag(this)">Stone Fruit</div>
+                <div class="tag" onclick="toggleTag(this)">Chocolate</div><div class="tag" onclick="toggleTag(this)">Caramel</div><div class="tag" onclick="toggleTag(this)">Vanilla</div>
+                <div class="tag" onclick="toggleTag(this)">Nutty</div><div class="tag" onclick="toggleTag(this)">Spicy</div><div class="tag" onclick="toggleTag(this)">Floral</div>
+                <div class="tag" onclick="toggleTag(this)">Sour</div><div class="tag" onclick="toggleTag(this)">Bitter</div><div class="tag" onclick="toggleTag(this)">Astringent</div>
+            </div>
+            <textarea id="notes" style="width:100%; margin-top:15px; padding:10px; background:rgba(0,0,0,0.3); border:1px solid #4a3828; color:#f5e6d3; border-radius:5px;" rows="3" placeholder="Additional notes..."></textarea>
+        </div>
+        
+        <div class="panel">
+            <h2>Export</h2>
+            <button onclick="exportData()">Finalize Cup Score</button>
+            <button class="premium-btn" onclick="showPremiumModal()"><i class="fas fa-lock"></i> Export Score Sheet</button>
+            <div class="export-data" id="exportStatus">Ready...</div>
+        </div>
+
+        <!-- Premium Modal -->
+        <div id="premiumModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closePremiumModal()">&times;</span>
+                <h2 style="color: #d4a574; margin-bottom: 10px;"><i class="fas fa-crown"></i> Go Premium</h2>
+                <p style="color: #a8896c;">Unlock professional cupping tools.</p>
+                <ul class="premium-features">
+                    <li><i class="fas fa-check-circle"></i> Official SCAA Score Sheet Export</li>
+                    <li><i class="fas fa-check-circle"></i> Flavor Wheel Integration</li>
+                    <li><i class="fas fa-check-circle"></i> Comparative Cupping Analysis</li>
+                </ul>
+                <button class="upgrade-btn" onclick="closePremiumModal()">Unlock Now - $4.99</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateScore() {
+            const ids = ['aroma', 'flavor', 'after', 'acid', 'body', 'bal', 'sweet', 'clean', 'uni', 'over'];
+            let total = 0;
+            ids.forEach(id => { const val = parseFloat(document.getElementById('in-' + id).value); document.getElementById('val-' + id).innerText = val; total += val; });
+            document.getElementById('finalScore').innerText = total.toFixed(2);
+        }
+        function toggleTag(el) { el.classList.toggle('selected'); }
+        function exportData() {
+            const tags = Array.from(document.querySelectorAll('.tag.selected')).map(t => t.innerText);
+            const data = { finalScore: document.getElementById('finalScore').innerText, attributes: { flavor: document.getElementById('in-flavor').value }, notes: tags.join(', ') + (document.getElementById('notes').value ? ' - ' + document.getElementById('notes').value : '') };
+            document.getElementById('exportStatus').innerText = JSON.stringify(data, null, 2);
+            window.parent.postMessage({ type: 'FORGE_EXPORT', module: 'TASTING', payload: data }, '*');
+        }
+
+        // --- Modal Logic ---
+        function showPremiumModal() {
+            document.getElementById('premiumModal').style.display = 'block';
+        }
+        function closePremiumModal() {
+            document.getElementById('premiumModal').style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('premiumModal')) closePremiumModal();
+        }
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closePremiumModal();
+        });
+        window.addEventListener('message', (event) => { if (event.data.type === 'FORGE_PIPELINE_UPDATE' && event.data.module === 'BREW') { document.getElementById('importStatus').innerText = `Brew: ${event.data.payload.brewProfile.method}, TDS: ${event.data.payload.brewProfile.tds}`; } });
+        updateScore();
+    </script>
+</body>
+</html>

@@ -290,6 +290,17 @@
             word-wrap: break-word;
         }
 
+        .premium-btn {
+            background: linear-gradient(135deg, #1a0f0a, #2c1810);
+            border: 1px solid #5d4037;
+            color: #8a6d4f;
+            margin-top: 10px;
+        }
+        .premium-btn:hover {
+            border-color: #d4a574;
+            color: #d4a574;
+        }
+
         @media (max-width: 600px) {
             h1 {
                 font-size: 1.5em;
@@ -303,6 +314,66 @@
                 padding: 15px;
             }
         }
+
+        /* Premium Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            margin: 10% auto; 
+            padding: 30px; 
+            border: 2px solid #d4a574;
+            border-radius: 15px;
+            width: 90%; 
+            max-width: 500px;
+            color: #f5e6d3;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(212, 165, 116, 0.15);
+            position: relative;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-modal {
+            color: #8a6d4f;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #d4a574; }
+
+        .premium-features { list-style: none; text-align: left; margin: 25px 0; padding: 0 10px; }
+        .premium-features li { margin: 12px 0; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
+        .premium-features i { color: #d4a574; }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #d4a574, #8b4513);
+            color: #2c1810;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+        .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 165, 116, 0.3); }
     </style>
 </head>
 <body>
@@ -453,10 +524,26 @@
         </div>
 
         <div class="panel">
-            <h2>Export to CaffeineForge</h2>
+            <h2>Export to Pipeline</h2>
             <div class="export-section">
-                <button onclick="exportProfile()" style="width: 100%;">Generate Brew Profile</button>
+                <button onclick="exportProfile()" style="width: 100%;">Export Roast Profile</button>
+                <button class="premium-btn" onclick="showPremiumModal()" style="width: 100%;"><i class="fas fa-lock"></i> Export Lab Report</button>
                 <div class="export-data" id="exportData">Complete a roast to generate brew profile...</div>
+            </div>
+        </div>
+
+        <!-- Premium Modal -->
+        <div id="premiumModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closePremiumModal()">&times;</span>
+                <h2 style="color: #d4a574; margin-bottom: 10px;"><i class="fas fa-crown"></i> Go Premium</h2>
+                <p style="color: #a8896c;">Unlock professional roasting tools.</p>
+                <ul class="premium-features">
+                    <li><i class="fas fa-check-circle"></i> Export Professional Roast PDFs</li>
+                    <li><i class="fas fa-check-circle"></i> Unlimited Roast History</li>
+                    <li><i class="fas fa-check-circle"></i> Advanced Bean Analytics</li>
+                </ul>
+                <button class="upgrade-btn" onclick="closePremiumModal()">Unlock Now - $4.99</button>
             </div>
         </div>
     </div>
@@ -931,14 +1018,28 @@
             
             document.getElementById('exportData').textContent = 
                 JSON.stringify(profile, null, 2);
-            // Add this to the end of your exportProfile function:
+            
             window.parent.postMessage({
                 type: 'FORGE_EXPORT',
-                module: 'ROAST', // Change this to 'GRIND' or 'BREW' respectively
-                payload: profile // The JSON object you already created
+                module: 'ROAST',
+                payload: profile
             }, '*');
         }
         
+        // --- Modal Logic ---
+        function showPremiumModal() {
+            document.getElementById('premiumModal').style.display = 'block';
+        }
+        function closePremiumModal() {
+            document.getElementById('premiumModal').style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('premiumModal')) closePremiumModal();
+        }
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closePremiumModal();
+        });
+
         // Initialize chart
         updateChart();
     </script>

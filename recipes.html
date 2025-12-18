@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RecipeForge - Configuration Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            color: #f5e6d3;
+            padding: 10px;
+            min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #4a3828;
+        }
+        h1 { font-size: 2em; color: #d4a574; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .subtitle { color: #a8896c; margin-top: 5px; }
+        .panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #4a3828;
+        }
+        .panel h2 { color: #d4a574; margin-bottom: 15px; font-size: 1.3em; }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #4a3828;
+            border-radius: 8px;
+            color: #f5e6d3;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #8b4513, #d2691e);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139, 69, 19, 0.4); }
+        button.secondary { background: #4a3828; }
+        button.danger { background: #e53935; }
+        button.load { background: #4caf50; }
+        
+        .recipe-list { display: grid; gap: 15px; }
+        .recipe-card {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #4a3828;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .recipe-info h3 { color: #d4a574; margin-bottom: 5px; }
+        .recipe-meta { font-size: 0.85em; color: #a8896c; }
+        .recipe-actions { display: flex; gap: 10px; }
+        
+        .status-msg {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        .status-msg.success { background: rgba(76, 175, 80, 0.2); color: #4caf50; display: block; }
+        .status-msg.error { background: rgba(229, 57, 53, 0.2); color: #e53935; display: block; }
+
+        .premium-btn {
+            background: linear-gradient(135deg, #1a0f0a, #2c1810);
+            border: 1px solid #5d4037;
+            color: #8a6d4f;
+            margin-top: 10px;
+        }
+        .premium-btn:hover {
+            border-color: #d4a574;
+            color: #d4a574;
+        }
+
+        /* Premium Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            margin: 10% auto; 
+            padding: 30px; 
+            border: 2px solid #d4a574;
+            border-radius: 15px;
+            width: 90%; 
+            max-width: 500px;
+            color: #f5e6d3;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(212, 165, 116, 0.15);
+            position: relative;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-modal {
+            color: #8a6d4f;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #d4a574; }
+
+        .premium-features { list-style: none; text-align: left; margin: 25px 0; padding: 0 10px; }
+        .premium-features li { margin: 12px 0; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
+        .premium-features i { color: #d4a574; }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #d4a574, #8b4513);
+            color: #2c1810;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+        .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 165, 116, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📖 RecipeForge</h1>
+            <div class="subtitle">Save & Load Pipeline Configurations</div>
+        </header>
+        
+        <div class="panel">
+            <h2>Save Current Configuration</h2>
+            <p style="color: #c9b59a; margin-bottom: 15px;">Capture the current state of all modules (Roast, Water, Grind, Brew, Milk, Caffeine, Tasting) into a reusable recipe.</p>
+            <input type="text" id="recipeName" placeholder="Enter recipe name (e.g., 'Morning Ethiopia V60')">
+            <button onclick="saveRecipe()" style="width:100%">Save Recipe</button>
+            <button class="premium-btn" onclick="showPremiumModal()" style="width:100%"><i class="fas fa-lock"></i> Sync to Cloud</button>
+            <div id="saveStatus" class="status-msg"></div>
+        </div>
+        
+        <div class="panel">
+            <h2>Saved Recipes</h2>
+            <div id="recipeList" class="recipe-list">
+                <div style="text-align:center; color:#666; padding:20px;">No recipes saved yet.</div>
+            </div>
+        </div>
+
+        <!-- Premium Modal -->
+        <div id="premiumModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closePremiumModal()">&times;</span>
+                <h2 style="color: #d4a574; margin-bottom: 10px;"><i class="fas fa-crown"></i> Go Premium</h2>
+                <p style="color: #a8896c;">Unlock cloud capabilities.</p>
+                <ul class="premium-features">
+                    <li><i class="fas fa-check-circle"></i> Cloud Recipe Synchronization</li>
+                    <li><i class="fas fa-check-circle"></i> Share Recipes with Community</li>
+                    <li><i class="fas fa-check-circle"></i> Unlimited Recipe Storage</li>
+                </ul>
+                <button class="upgrade-btn" onclick="closePremiumModal()">Unlock Now - $4.99</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MODULES = ['ROAST', 'WATER', 'GRIND', 'BREW', 'MILK', 'CAFFEINE', 'TASTING'];
+        
+        function init() { renderList(); }
+        function getRecipes() { return JSON.parse(localStorage.getItem('FORGE_RECIPES') || '[]'); }
+        
+        function saveRecipe() {
+            const name = document.getElementById('recipeName').value.trim();
+            if (!name) return showStatus('saveStatus', 'Please enter a recipe name', 'error');
+            
+            const recipe = { id: Date.now(), name: name, date: new Date().toISOString(), data: {} };
+            let hasData = false;
+            
+            MODULES.forEach(mod => {
+                const data = localStorage.getItem(`FORGE_${mod}_DATA`);
+                if (data) { recipe.data[mod] = JSON.parse(data); hasData = true; }
+            });
+            
+            if (!hasData) return showStatus('saveStatus', 'No pipeline data found to save!', 'error');
+            
+            const recipes = getRecipes();
+            recipes.push(recipe);
+            localStorage.setItem('FORGE_RECIPES', JSON.stringify(recipes));
+            
+            document.getElementById('recipeName').value = '';
+            showStatus('saveStatus', 'Recipe saved successfully!', 'success');
+            renderList();
+        }
+        
+        function loadRecipe(id) {
+            const recipe = getRecipes().find(r => r.id === id);
+            if (!recipe) return;
+            
+            Object.keys(recipe.data).forEach(mod => {
+                window.parent.postMessage({ type: 'FORGE_EXPORT', module: mod, payload: recipe.data[mod] }, '*');
+            });
+            alert(`Loaded recipe: ${recipe.name}`);
+        }
+        
+        function deleteRecipe(id) {
+            if (!confirm('Delete this recipe?')) return;
+            localStorage.setItem('FORGE_RECIPES', JSON.stringify(getRecipes().filter(r => r.id !== id)));
+            renderList();
+        }
+        
+        function renderList() {
+            const list = document.getElementById('recipeList');
+            const recipes = getRecipes();
+            if (recipes.length === 0) return list.innerHTML = '<div style="text-align:center; color:#666; padding:20px;">No recipes saved yet.</div>';
+            list.innerHTML = recipes.map(r => `<div class="recipe-card"><div class="recipe-info"><h3>${r.name}</h3><div class="recipe-meta">${new Date(r.date).toLocaleDateString()} • ${Object.keys(r.data).length} Modules</div></div><div class="recipe-actions"><button class="load" onclick="loadRecipe(${r.id})"><i class="fas fa-upload"></i> Load</button><button class="danger" onclick="deleteRecipe(${r.id})"><i class="fas fa-trash"></i></button></div></div>`).join('');
+        }
+        
+        // --- Modal Logic ---
+        function showPremiumModal() {
+            document.getElementById('premiumModal').style.display = 'block';
+        }
+        function closePremiumModal() {
+            document.getElementById('premiumModal').style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('premiumModal')) closePremiumModal();
+        }
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closePremiumModal();
+        });
+
+        function showStatus(elId, msg, type) { const el = document.getElementById(elId); el.textContent = msg; el.className = `status-msg ${type}`; setTimeout(() => { el.className = 'status-msg'; }, 3000); }
+        init();
+    </script>
+</body>
+</html>

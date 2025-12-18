@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forge Dashboard - Pipeline Telemetry</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            color: #f5e6d3;
+            padding: 10px;
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #4a3828;
+        }
+        
+        h1 { font-size: 2em; color: #d4a574; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .subtitle { color: #a8896c; margin-top: 5px; }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #4a3828;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #d4a574;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #4a3828;
+            color: #d4a574;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .card-content {
+            font-size: 0.9em;
+            color: #c9b59a;
+        }
+        
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .data-label { color: #8a6d4f; }
+        .data-value { color: #f5e6d3; font-weight: 600; text-align: right; }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            background: #3a2817;
+            color: #888;
+        }
+        
+        .status-badge.active {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid #4caf50;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, #c62828, #e53935);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(198, 40, 40, 0.4);
+        }
+        
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(198, 40, 40, 0.6);
+        }
+
+        .premium-btn {
+            background: linear-gradient(135deg, #1a0f0a, #2c1810);
+            border: 1px solid #5d4037;
+            color: #8a6d4f;
+            margin-left: 10px;
+        }
+        .premium-btn:hover {
+            border-color: #d4a574;
+            color: #d4a574;
+        }
+
+        /* Premium Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            margin: 10% auto; 
+            padding: 30px; 
+            border: 2px solid #d4a574;
+            border-radius: 15px;
+            width: 90%; 
+            max-width: 500px;
+            color: #f5e6d3;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(212, 165, 116, 0.15);
+            position: relative;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-modal {
+            color: #8a6d4f;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #d4a574; }
+
+        .premium-features { list-style: none; text-align: left; margin: 25px 0; padding: 0 10px; }
+        .premium-features li { margin: 12px 0; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
+        .premium-features i { color: #d4a574; }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #d4a574, #8b4513);
+            color: #2c1810;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+        .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 165, 116, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Mission Control</h1>
+            <div class="subtitle">Live Pipeline Telemetry & Data Aggregation</div>
+            <button class="reset-btn premium-btn" onclick="showPremiumModal()">
+                <i class="fas fa-lock"></i> Export CSV
+            </button>
+            <button class="reset-btn" onclick="resetAll()">
+                <i class="fas fa-trash-alt"></i> Reset All Data
+            </button>
+        </header>
+        
+        <div class="dashboard-grid">
+            <!-- Roast Module -->
+            <div class="card" id="card-roast">
+                <div class="card-header"><i class="fas fa-fire"></i> RoastForge <span class="status-badge" id="status-roast">Waiting</span></div>
+                <div class="card-content" id="content-roast"><div class="empty-state">No roast data synced</div></div>
+            </div>
+
+            <!-- Water Module -->
+            <div class="card" id="card-water">
+                <div class="card-header"><i class="fas fa-tint"></i> WaterForge <span class="status-badge" id="status-water">Waiting</span></div>
+                <div class="card-content" id="content-water"><div class="empty-state">No water profile synced</div></div>
+            </div>
+
+            <!-- Grind Module -->
+            <div class="card" id="card-grind">
+                <div class="card-header"><i class="fas fa-cog"></i> GrindForge <span class="status-badge" id="status-grind">Waiting</span></div>
+                <div class="card-content" id="content-grind"><div class="empty-state">No grind data synced</div></div>
+            </div>
+
+            <!-- Brew Module -->
+            <div class="card" id="card-brew">
+                <div class="card-header"><i class="fas fa-mug-hot"></i> BrewForge <span class="status-badge" id="status-brew">Waiting</span></div>
+                <div class="card-content" id="content-brew"><div class="empty-state">No brew data synced</div></div>
+            </div>
+
+            <!-- Milk Module -->
+            <div class="card" id="card-milk">
+                <div class="card-header"><i class="fas fa-blender"></i> MilkForge <span class="status-badge" id="status-milk">Waiting</span></div>
+                <div class="card-content" id="content-milk"><div class="empty-state">No milk data synced</div></div>
+            </div>
+
+            <!-- Caffeine Module -->
+            <div class="card" id="card-caffeine">
+                <div class="card-header"><i class="fas fa-dna"></i> CaffeineForge <span class="status-badge" id="status-caffeine">Waiting</span></div>
+                <div class="card-content" id="content-caffeine"><div class="empty-state">No biological data synced</div></div>
+            </div>
+
+            <!-- Tasting Module -->
+            <div class="card" id="card-tasting">
+                <div class="card-header"><i class="fas fa-utensils"></i> TasteForge <span class="status-badge" id="status-tasting">Waiting</span></div>
+                <div class="card-content" id="content-tasting"><div class="empty-state">No sensory data synced</div></div>
+            </div>
+        </div>
+
+        <!-- Premium Modal -->
+        <div id="premiumModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closePremiumModal()">&times;</span>
+                <h2 style="color: #d4a574; margin-bottom: 10px;"><i class="fas fa-crown"></i> Go Premium</h2>
+                <p style="color: #a8896c;">Unlock full data control.</p>
+                <ul class="premium-features">
+                    <li><i class="fas fa-check-circle"></i> Full Pipeline CSV/JSON Export</li>
+                    <li><i class="fas fa-check-circle"></i> Real-time Multi-Device Sync</li>
+                    <li><i class="fas fa-check-circle"></i> Advanced Analytics Dashboard</li>
+                </ul>
+                <button class="upgrade-btn" onclick="closePremiumModal()">Unlock Now - $4.99</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modules = ['ROAST', 'WATER', 'GRIND', 'BREW', 'MILK', 'CAFFEINE', 'TASTING'];
+
+        function init() {
+            // Load persisted data
+            modules.forEach(mod => {
+                const data = localStorage.getItem(`FORGE_${mod}_DATA`);
+                if (data) {
+                    updateCard(mod, JSON.parse(data));
+                }
+            });
+        }
+
+        function updateCard(module, data) {
+            const contentEl = document.getElementById(`content-${module.toLowerCase()}`);
+            const statusEl = document.getElementById(`status-${module.toLowerCase()}`);
+            
+            if (!contentEl) return;
+
+            statusEl.textContent = "Synced";
+            statusEl.classList.add('active');
+
+            let html = '';
+            
+            // Flatten and format object for display
+            const processObj = (obj, prefix = '') => {
+                for (const [key, value] of Object.entries(obj)) {
+                    if (typeof value === 'object' && value !== null) {
+                        html += `<div style="margin-top:8px; border-bottom:1px solid #3a2817; color:#d4a574; font-size:0.85em; text-transform:uppercase;">${key.replace(/([A-Z])/g, ' $1')}</div>`;
+                        processObj(value);
+                    } else {
+                        html += `
+                            <div class="data-row">
+                                <span class="data-label">${key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                <span class="data-value">${value}</span>
+                            </div>
+                        `;
+                    }
+                }
+            };
+
+            // Simplified display logic for complex objects
+            if (module === 'ROAST') {
+                html += row('Level', data.roastProfile.level);
+                html += row('Final Temp', data.roastProfile.finalTemp + '°C');
+                html += row('Development', data.roastProfile.roastTime + ' min');
+                html += row('Caffeine Ret.', data.chemistry.caffeineRetention);
+            } else if (module === 'WATER') {
+                html += row('Hardness', data.waterProfile.totalHardness);
+                html += row('Alkalinity', data.waterProfile.alkalinity);
+                html += row('Target', data.metrics.flavorTarget);
+            } else if (module === 'GRIND') {
+                html += row('Mean Size', data.grindProfile.meanParticleSize);
+                html += row('Uniformity', data.grindProfile.uniformity);
+                html += row('Surface Area', data.grindProfile.surfaceArea);
+            } else if (module === 'BREW') {
+                html += row('Method', data.brewProfile.method);
+                html += row('Extraction', data.brewProfile.extraction);
+                html += row('TDS', data.brewProfile.tds);
+                html += row('Balance', data.qualityMetrics.balance);
+            } else if (module === 'MILK') {
+                html += row('Type', data.milkProfile.type);
+                html += row('Texture', data.outcomeMetrics.texture);
+                html += row('Temp', data.outcomeMetrics.finalTemperature);
+            } else if (module === 'CAFFEINE') {
+                html += row('Metabolism', data.userProfile.metabolism);
+                html += row('Optimal Cups', data.predictions.optimalCups);
+                html += row('Peak Alertness', data.predictions.peakAlertness);
+                html += row('Anxiety Risk', data.risks.anxiety);
+            } else if (module === 'TASTING') {
+                html += row('Final Score', data.finalScore);
+                html += row('Flavor', data.attributes.flavor);
+                html += row('Notes', data.notes.substring(0, 20) + (data.notes.length > 20 ? '...' : ''));
+            } else {
+                // Fallback for unknown structure
+                processObj(data);
+            }
+
+            contentEl.innerHTML = html;
+        }
+
+        function row(label, value) {
+            return `<div class="data-row"><span class="data-label">${label}</span><span class="data-value">${value}</span></div>`;
+        }
+
+        function resetAll() {
+            if (!confirm('Are you sure you want to clear all pipeline data? This will remove all synced profiles.')) return;
+
+            const emptyMessages = {
+                ROAST: "No roast data synced",
+                WATER: "No water profile synced",
+                GRIND: "No grind data synced",
+                BREW: "No brew data synced",
+                MILK: "No milk data synced",
+                CAFFEINE: "No biological data synced",
+                TASTING: "No sensory data synced"
+            };
+
+            modules.forEach(mod => {
+                localStorage.removeItem(`FORGE_${mod}_DATA`);
+                
+                const contentEl = document.getElementById(`content-${mod.toLowerCase()}`);
+                const statusEl = document.getElementById(`status-${mod.toLowerCase()}`);
+                
+                if (contentEl) contentEl.innerHTML = `<div class="empty-state">${emptyMessages[mod] || 'No data synced'}</div>`;
+                if (statusEl) {
+                    statusEl.textContent = "Waiting";
+                    statusEl.classList.remove('active');
+                }
+            });
+        }
+
+        // Listen for pipeline updates
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'FORGE_PIPELINE_UPDATE') {
+                updateCard(event.data.module, event.data.payload);
+            }
+        });
+
+        // --- Modal Logic ---
+        function showPremiumModal() {
+            document.getElementById('premiumModal').style.display = 'block';
+        }
+        function closePremiumModal() {
+            document.getElementById('premiumModal').style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('premiumModal')) closePremiumModal();
+        }
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closePremiumModal();
+        });
+
+        init();
+    </script>
+</body>
+</html>

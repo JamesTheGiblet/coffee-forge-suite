@@ -87,26 +87,34 @@
 
 <nav>
     <div class="nav-header">COFFEE FORGE PRO</div>
+    <a href="#" class="nav-item" onclick="showForge('dashboard')">📊 Dashboard</a>
+    <a href="#" class="nav-item" onclick="showForge('recipes')">📖 Recipe Book</a>
     <a href="#" class="nav-item active" onclick="showForge('roast')">🔥 RoastForge</a>
     <a href="#" class="nav-item" onclick="showForge('water')">💧 WaterForge</a>
     <a href="#" class="nav-item" onclick="showForge('grind')">⚙️ GrindForge</a>
     <a href="#" class="nav-item" onclick="showForge('brew')">☕ BrewForge</a>
+    <a href="#" class="nav-item" onclick="showForge('milk')">🥛 MilkForge</a>
     <a href="#" class="nav-item" onclick="showForge('caffeine')">🧬 CaffeineForge</a>
+    <a href="#" class="nav-item" onclick="showForge('tasting')">👅 TasteForge</a>
 </nav>
 
 <main>
     <div class="frame-container" id="forgeContainer">
+        <iframe id="dashboardFrame" src="dashboard.html" title="Forge Dashboard"></iframe>
+        <iframe id="recipesFrame" src="recipes.html" title="Recipe Book"></iframe>
         <iframe id="roastFrame" src="roast.html" class="active" title="RoastForge Simulator"></iframe>
         <iframe id="waterFrame" src="water.html" title="WaterForge Simulator"></iframe>
         <iframe id="grindFrame" src="grind.html" title="GrindForge Simulator"></iframe>
         <iframe id="brewFrame" src="brew.html" title="BrewForge Simulator"></iframe>
+        <iframe id="milkFrame" src="milk.html" title="MilkForge Simulator"></iframe>
         <iframe id="caffeineFrame" src="caffeine.html" title="CaffeineForge Simulator"></iframe>
+        <iframe id="tastingFrame" src="tasting.html" title="TasteForge Simulator"></iframe>
     </div>
     
     <div class="status-bar">
         <div class="pipeline-status">
             <span>System: <strong id="stateStatus" class="indicator">Online</strong></span>
-            <span id="dataFlow">Pipeline: Roast ⮕ Water ⮕ Grind ⮕ Brew ⮕ Human</span>
+            <span id="dataFlow">Pipeline: Roast ⮕ Water ⮕ Grind ⮕ Brew ⮕ Milk ⮕ Human ⮕ Taste</span>
         </div>
         <div id="syncIndicator" class="sync-msg">✓ Pipeline Synchronized</div>
     </div>

@@ -398,6 +398,66 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        /* Premium Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            margin: 10% auto; 
+            padding: 30px; 
+            border: 2px solid #d4a574;
+            border-radius: 15px;
+            width: 90%; 
+            max-width: 500px;
+            color: #f5e6d3;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(212, 165, 116, 0.15);
+            position: relative;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-modal {
+            color: #8a6d4f;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #d4a574; }
+
+        .premium-features { list-style: none; text-align: left; margin: 25px 0; padding: 0 10px; }
+        .premium-features li { margin: 12px 0; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
+        .premium-features i { color: #d4a574; }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #d4a574, #8b4513);
+            color: #2c1810;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+        .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 165, 116, 0.3); }
     </style>
 </head>
 <body>
@@ -408,10 +468,10 @@
         </header>
 
         <div class="panel">
-            <h2>Import from RoastForge</h2>
+            <h2>Pipeline Imports</h2>
             <div class="import-section">
                 <div class="import-data" id="roastData">
-                    No roast profile loaded. Default: Medium Roast
+                    Waiting for pipeline data...
                 </div>
             </div>
         </div>
@@ -604,9 +664,25 @@
             <h2>Export to CaffeineForge</h2>
             <div class="import-section">
                 <button onclick="exportGrind()" style="width: 100%;">Generate Brew Profile</button>
+                <button class="premium-btn" onclick="showPremiumModal()" style="width: 100%;"><i class="fas fa-lock"></i> Export Lab Report</button>
                 <div class="import-data" id="exportData" style="margin-top: 10px; max-height: 200px; overflow-y: auto;">
                     Complete a grind to generate brew profile...
                 </div>
+            </div>
+        </div>
+
+        <!-- Premium Modal -->
+        <div id="premiumModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closePremiumModal()">&times;</span>
+                <h2 style="color: #d4a574; margin-bottom: 10px;"><i class="fas fa-crown"></i> Go Premium</h2>
+                <p style="color: #a8896c;">Unlock precision grinding tools.</p>
+                <ul class="premium-features">
+                    <li><i class="fas fa-check-circle"></i> Detailed Particle Distribution Reports</li>
+                    <li><i class="fas fa-check-circle"></i> Save Custom Grinder Profiles</li>
+                    <li><i class="fas fa-check-circle"></i> Heat Generation Analysis</li>
+                </ul>
+                <button class="upgrade-btn" onclick="closePremiumModal()">Unlock Now - $4.99</button>
             </div>
         </div>
     </div>
@@ -1063,8 +1139,98 @@
             };
             
             document.getElementById('exportData').textContent = JSON.stringify(profile, null, 2);
+            
+            window.parent.postMessage({
+                type: 'FORGE_EXPORT',
+                module: 'GRIND',
+                payload: profile
+            }, '*');
         }
         
+        // Pipeline Listener
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'FORGE_PIPELINE_UPDATE') {
+                const { module, payload } = event.data;
+                const importDisplay = document.getElementById('roastData');
+                
+                if (module === 'ROAST') {
+                    // Update internal roast profile for physics simulation
+                    roastProfile = {
+                        level: payload.roastProfile.level,
+                        brittleness: payload.roastProfile.level === 'Light' ? 0.9 : payload.roastProfile.level === 'Dark' ? 0.4 : 0.7,
+                        density: 0.65, 
+                        caffeineContent: parseInt(payload.caffeineForgeData.caffeinePerGram) || 95
+                    };
+                    
+                    let msg = `Roast: ${payload.roastProfile.level}. `;
+                    
+                    // Auto-adjust grind based on roast level
+                    const currentSize = parseInt(document.getElementById('targetSize').value);
+                    if (payload.roastProfile.level === 'Dark') {
+                        const newSize = Math.min(2000, currentSize + 100);
+                        document.getElementById('targetSize').value = newSize;
+                        document.getElementById('targetSizeValue').textContent = newSize + ' μm';
+                        msg += `Beans are brittle. Coarsening grind (+100μm).`;
+                    } else if (payload.roastProfile.level === 'Light') {
+                        const newSize = Math.max(100, currentSize - 50);
+                        document.getElementById('targetSize').value = newSize;
+                        document.getElementById('targetSizeValue').textContent = newSize + ' μm';
+                        msg += `Beans are dense. Fining grind (-50μm).`;
+                    }
+                    
+                    importDisplay.textContent = msg;
+                    updateParameters();
+                }
+                
+                if (module === 'WATER') {
+                    const hardness = parseInt(payload.waterProfile.totalHardness);
+                    const currentSize = parseInt(document.getElementById('targetSize').value);
+                    let newSize = currentSize;
+                    let msg = `Water Hardness: ${hardness}ppm. `;
+                    
+                    if (hardness > 150) {
+                        newSize = Math.min(2000, currentSize + 50);
+                        msg += `High mineral content. Coarsening (+50μm) to balance extraction.`;
+                    } else if (hardness < 50) {
+                        newSize = Math.max(100, currentSize - 50);
+                        msg += `Low mineral content. Fining (-50μm) to aid extraction.`;
+                    } else {
+                        msg += `Optimal range. Grind maintained.`;
+                    }
+                    
+                    document.getElementById('targetSize').value = newSize;
+                    document.getElementById('targetSizeValue').textContent = newSize + ' μm';
+                    
+                    // Append to display
+                    if (!importDisplay.textContent.includes('Water')) {
+                        importDisplay.textContent += `\n\n${msg}`;
+                    } else {
+                        // Replace existing water msg if present (simple append for now)
+                        importDisplay.textContent += `\n${msg}`;
+                    }
+                    updateParameters();
+                }
+            }
+            
+            if (event.data.type === 'FORGE_SYNC_REQUEST') {
+                exportGrind();
+            }
+        });
+
+        // --- Modal Logic ---
+        function showPremiumModal() {
+            document.getElementById('premiumModal').style.display = 'block';
+        }
+        function closePremiumModal() {
+            document.getElementById('premiumModal').style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('premiumModal')) closePremiumModal();
+        }
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closePremiumModal();
+        });
+
         // Initialize
         updateParameters();
         updateDistributionChart();

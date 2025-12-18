@@ -632,6 +632,16 @@
             background: #e53935;
             color: white;
         }
+
+        .btn-premium {
+            background: rgba(0,0,0,0.3);
+            color: #888;
+            border: 1px solid #555;
+        }
+        .btn-premium:hover {
+            border-color: #d4a574;
+            color: #d4a574;
+        }
         
         /* Toast Notifications */
         .toast {
@@ -875,6 +885,21 @@
             border-bottom: none;
         }
         
+        .import-section {
+            background: rgba(139, 69, 19, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px dashed #8b4513;
+            margin-bottom: 20px;
+        }
+
+        .import-status {
+            color: #d4a574;
+            font-family: monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+        }
+        
         /* Desktop Optimizations */
         @media (min-width: 1024px) {
             .container {
@@ -920,6 +945,71 @@
                 page-break-inside: avoid;
             }
         }
+
+        /* Premium Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            margin: 10% auto; 
+            padding: 30px; 
+            border: 2px solid #d4a574;
+            border-radius: 15px;
+            width: 90%; 
+            max-width: 500px;
+            color: #f5e6d3;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(212, 165, 116, 0.15);
+            position: relative;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-modal {
+            color: #8a6d4f;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #d4a574; }
+
+        .premium-features { list-style: none; text-align: left; margin: 25px 0; padding: 0 10px; }
+        .premium-features li { margin: 12px 0; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
+        .premium-features i { color: #d4a574; }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #d4a574, #8b4513);
+            color: #2c1810;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212, 165, 116, 0.3); }
     </style>
 </head>
 <body>
@@ -961,6 +1051,19 @@
     <div class="container">
         <!-- Calculator Tab -->
         <div class="tab-content active" id="calculator">
+            <!-- Pipeline Import -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-file-import"></i> Pipeline Import</h3>
+                </div>
+                <div class="card-body">
+                    <div class="import-section">
+                        <div class="import-status" id="importStatus">Waiting for brew data...</div>
+                        <button id="importBtn" class="btn btn-primary" style="margin-top:10px; display:none;" onclick="addImportedDrink()"><i class="fas fa-plus"></i> Drink This Brew</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Chart -->
             <div class="chart-wrapper">
                 <div id="chart"></div>
@@ -1138,6 +1241,10 @@
                 <button class="action-btn" onclick="resetToDefaults()">
                     <i class="fas fa-undo"></i>
                     <span>Reset</span>
+                </button>
+                <button class="action-btn btn-premium" onclick="showPremiumModal()">
+                    <i class="fas fa-lock"></i>
+                    <span>Report+</span>
                 </button>
             </div>
         </div>
@@ -1651,6 +1758,21 @@
         <i class="fas fa-info-circle"></i>
         <span id="toast-message">Notification</span>
     </div>
+
+    <!-- Premium Modal -->
+    <div id="premiumModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closePremiumModal()">&times;</span>
+            <h2 style="color: #d4a574; margin-bottom: 10px;"><i class="fas fa-crown"></i> Go Premium</h2>
+            <p style="color: #a8896c;">Unlock advanced health insights.</p>
+            <ul class="premium-features">
+                <li><i class="fas fa-check-circle"></i> Personalized Caffeine Sensitivity Report</li>
+                <li><i class="fas fa-check-circle"></i> Genetic Metabolism Analysis</li>
+                <li><i class="fas fa-check-circle"></i> Sleep Impact Projections</li>
+            </ul>
+            <button class="upgrade-btn" onclick="closePremiumModal()">Unlock Now - $4.99</button>
+        </div>
+    </div>
     
     <script>
         // ============================================================================
@@ -1674,6 +1796,7 @@
         
         let consumedDrinks = [];
         let currentData = null;
+        let importedBrew = null;
         
         const params = {
             baseline: 30,
@@ -1849,6 +1972,37 @@
             updateTimeline();
             showToast(`Added ${drink.name} (${drink.caffeine}mg)`, 'success');
         }
+        
+        function addImportedDrink() {
+            if(!importedBrew) return;
+            
+            const caffeineStr = importedBrew.caffeineForgeData.estimatedCaffeine;
+            const caffeineVal = parseFloat(caffeineStr);
+            
+            addDrink({
+                name: `Fresh ${importedBrew.brewProfile.method}`,
+                icon: '🧪',
+                caffeine: caffeineVal,
+                emoji: '🧪'
+            });
+        }
+
+        // Pipeline Listener
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'FORGE_PIPELINE_UPDATE' && event.data.module === 'BREW') {
+                importedBrew = event.data.payload;
+                const p = importedBrew;
+                
+                const msg = `Incoming Brew: ${p.brewProfile.method}\n` +
+                           `Volume: ${p.brewProfile.waterVolume}\n` +
+                           `Extraction Efficiency: ${p.caffeineForgeData.extractionEfficiency}\n` +
+                           `Calculated Caffeine: ${p.caffeineForgeData.estimatedCaffeine}`;
+                
+                document.getElementById('importStatus').innerText = msg;
+                document.getElementById('importBtn').style.display = 'block';
+                showToast('Brew data received', 'info');
+            }
+        });
         
         function clearDrinks() {
             consumedDrinks = [];
@@ -2185,6 +2339,30 @@
         function exportData() {
             if (!currentData) return;
             
+            // Broadcast to Pipeline
+            const payload = {
+                userProfile: {
+                    weight: params.bodyMass + 'kg',
+                    metabolism: metabolismProfiles[params.metabolism].label,
+                    tolerance: params.tolerance
+                },
+                predictions: {
+                    optimalCups: currentData.optimalCups.toFixed(1),
+                    peakAlertness: Math.round(currentData.maxBenefit) + '%',
+                    halfLife: currentData.halfLife + 'h'
+                },
+                risks: {
+                    anxiety: Math.round(currentData.sideEffects.anxiety) + '%',
+                    sleepDisruption: Math.round(currentData.sideEffects.sleepDisruption) + '%'
+                }
+            };
+            
+            window.parent.postMessage({
+                type: 'FORGE_EXPORT',
+                module: 'CAFFEINE',
+                payload: payload
+            }, '*');
+            
             let csv = 'CAFFEINE RESPONSE DATA\n';
             csv += `Generated,${new Date().toISOString()}\n\n`;
             csv += 'PARAMETERS\n';
@@ -2360,6 +2538,20 @@
             setTimeout(() => toast.classList.remove('show'), 3500);
         }
         
+        // --- Modal Logic ---
+        function showPremiumModal() {
+            document.getElementById('premiumModal').style.display = 'block';
+        }
+        function closePremiumModal() {
+            document.getElementById('premiumModal').style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('premiumModal')) closePremiumModal();
+        }
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') closePremiumModal();
+        });
+
         console.log('%c☕ CaffeineForge Pro', 'font-size: 24px; font-weight: bold; color: #6F4E37;');
         console.log('%cMobile-optimized caffeine response calculator', 'font-size: 12px; color: #666;');
         console.log('%c→ Scientific Details tab now available', 'font-size: 11px; color: #2E8B57;');
