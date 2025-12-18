@@ -931,6 +931,12 @@
             
             document.getElementById('exportData').textContent = 
                 JSON.stringify(profile, null, 2);
+            // Add this to the end of your exportProfile function:
+            window.parent.postMessage({
+                type: 'FORGE_EXPORT',
+                module: 'ROAST', // Change this to 'GRIND' or 'BREW' respectively
+                payload: profile // The JSON object you already created
+            }, '*');
         }
         
         // Initialize chart
