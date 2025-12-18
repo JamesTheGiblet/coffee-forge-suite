@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrindForge - Coffee Grinding Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1410 0%, #0a0604 100%);
+            color: #f5e6d3;
+            padding: 10px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #a67c52;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            color: #8a6d4f;
+            margin-top: 5px;
+        }
+
+        .panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #3a2817;
+        }
+
+        .panel h2 {
+            color: #a67c52;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .controls {
+            display: grid;
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            color: #b89968;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(90deg, #2a1810, #a67c52);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #a67c52;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(166, 124, 82, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #a67c52;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(166, 124, 82, 0.5);
+            border: none;
+        }
+
+        .value-display {
+            color: #a67c52;
+            font-weight: bold;
+            min-width: 100px;
+            text-align: right;
+        }
+
+        button {
+            background: linear-gradient(135deg, #654321, #8b6914);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(101, 67, 33, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(101, 67, 33, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .grinder-visual {
+            position: relative;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .burrs {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 20px 0;
+        }
+
+        .burr {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid #666;
+        }
+
+        .burr-outer {
+            background: repeating-conic-gradient(
+                from 0deg,
+                #888 0deg 9deg,
+                #555 9deg 18deg
+            );
+        }
+
+        .burr-inner {
+            width: 60%;
+            height: 60%;
+            top: 20%;
+            left: 20%;
+            background: repeating-conic-gradient(
+                from 0deg,
+                #777 0deg 9deg,
+                #444 9deg 18deg
+            );
+        }
+
+        .particle-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, #8b7355, #3a2817);
+            animation: fall 2s linear;
+        }
+
+        @keyframes fall {
+            from {
+                top: -10px;
+                opacity: 1;
+            }
+            to {
+                top: 100%;
+                opacity: 0.3;
+            }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 5px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #3a2817;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #8a6d4f;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #a67c52;
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+
+        .distribution-viz {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+
+        .grind-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .grind-type {
+            padding: 15px 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .grind-type:hover {
+            border-color: #a67c52;
+            background: rgba(166, 124, 82, 0.1);
+        }
+
+        .grind-type.selected {
+            border-color: #a67c52;
+            background: rgba(166, 124, 82, 0.2);
+            box-shadow: 0 0 15px rgba(166, 124, 82, 0.3);
+        }
+
+        .grind-name {
+            font-weight: bold;
+            color: #a67c52;
+            margin-bottom: 5px;
+        }
+
+        .grind-size {
+            font-size: 0.85em;
+            color: #8a6d4f;
+        }
+
+        .extraction-bars {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .extract-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .extract-label {
+            min-width: 120px;
+            color: #b89968;
+            font-size: 0.9em;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #3a2817;
+        }
+
+        .bar-fill {
+            height: 100%;
+            transition: width 0.5s;
+            border-radius: 10px;
+        }
+
+        .import-section {
+            background: rgba(101, 67, 33, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px dashed #654321;
+            margin-bottom: 20px;
+        }
+
+        .import-data {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #a67c52;
+            margin-top: 10px;
+        }
+
+        .texture-viz {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
+        .texture-sample {
+            flex: 1;
+            height: 100px;
+            border-radius: 8px;
+            border: 2px solid #3a2817;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .texture-label {
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            background: rgba(0,0,0,0.7);
+            padding: 5px;
+            font-size: 0.85em;
+            color: #a67c52;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .grind-types {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚙️ GrindForge</h1>
+            <div class="subtitle">Particle Size Distribution & Extraction Simulator</div>
+        </header>
+
+        <div class="panel">
+            <h2>Import from RoastForge</h2>
+            <div class="import-section">
+                <div class="import-data" id="roastData">
+                    No roast profile loaded. Default: Medium Roast
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Quick Grind Presets</h2>
+            <div class="grind-types">
+                <div class="grind-type" onclick="selectGrind('turkish', 100)">
+                    <div class="grind-name">Turkish</div>
+                    <div class="grind-size">100-200μm</div>
+                </div>
+                <div class="grind-type selected" onclick="selectGrind('espresso', 250)">
+                    <div class="grind-name">Espresso</div>
+                    <div class="grind-size">200-300μm</div>
+                </div>
+                <div class="grind-type" onclick="selectGrind('aeropress', 400)">
+                    <div class="grind-name">AeroPress</div>
+                    <div class="grind-size">300-500μm</div>
+                </div>
+                <div class="grind-type" onclick="selectGrind('pourover', 650)">
+                    <div class="grind-name">Pour Over</div>
+                    <div class="grind-size">500-800μm</div>
+                </div>
+                <div class="grind-type" onclick="selectGrind('drip', 900)">
+                    <div class="grind-name">Drip</div>
+                    <div class="grind-size">800-1000μm</div>
+                </div>
+                <div class="grind-type" onclick="selectGrind('french', 1100)">
+                    <div class="grind-name">French Press</div>
+                    <div class="grind-size">1000-1200μm</div>
+                </div>
+                <div class="grind-type" onclick="selectGrind('cold', 1400)">
+                    <div class="grind-name">Cold Brew</div>
+                    <div class="grind-size">1200-1600μm</div>
+                </div>
+                <div class="grind-type" onclick="selectGrind('cowboy', 1800)">
+                    <div class="grind-name">Cowboy</div>
+                    <div class="grind-size">1600-2000μm</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Grinder Settings</h2>
+            <div class="controls">
+                <div class="control-group">
+                    <label>
+                        <span>Target Particle Size</span>
+                        <span class="value-display" id="targetSizeValue">250 μm</span>
+                    </label>
+                    <input type="range" id="targetSize" min="100" max="2000" step="50" value="250">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <span>Burr Gap</span>
+                        <span class="value-display" id="burrGapValue">0.25 mm</span>
+                    </label>
+                    <input type="range" id="burrGap" min="0.1" max="2.0" step="0.05" value="0.25">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <span>RPM (Speed)</span>
+                        <span class="value-display" id="rpmValue">1200 RPM</span>
+                    </label>
+                    <input type="range" id="rpm" min="400" max="2000" step="100" value="1200">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <span>Grind Time</span>
+                        <span class="value-display" id="grindTimeValue">15 sec</span>
+                    </label>
+                    <input type="range" id="grindTime" min="5" max="60" step="5" value="15">
+                </div>
+                <div class="control-group">
+                    <label>
+                        <span>Burr Temperature</span>
+                        <span class="value-display" id="burrTempValue">25°C</span>
+                    </label>
+                    <input type="range" id="burrTemp" min="20" max="80" step="5" value="25">
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <button id="grindBtn" onclick="toggleGrind()">START GRIND</button>
+        </div>
+
+        <div class="panel">
+            <h2>Grinder Visualization</h2>
+            <div class="grinder-visual">
+                <div class="particle-container" id="particles"></div>
+                <div class="burrs">
+                    <div class="burr burr-outer" id="burrOuter"></div>
+                    <div class="burr burr-inner" id="burrInner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="distChart" width="800" height="400"></canvas>
+        </div>
+
+        <div class="panel">
+            <h2>Grind Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Mean Size</div>
+                    <div class="stat-value" id="meanSize">250 μm</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Uniformity</div>
+                    <div class="stat-value" id="uniformity">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Fines (&lt;200μm)</div>
+                    <div class="stat-value" id="fines">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Boulders (&gt;2x)</div>
+                    <div class="stat-value" id="boulders">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Surface Area</div>
+                    <div class="stat-value" id="surfaceArea">-- cm²</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Heat Generated</div>
+                    <div class="stat-value" id="heatGen">-- °C</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Grind Texture Visualization</h2>
+            <div class="texture-viz">
+                <div class="texture-sample" id="texture1">
+                    <div class="texture-label">Coarse</div>
+                </div>
+                <div class="texture-sample" id="texture2">
+                    <div class="texture-label">Current</div>
+                </div>
+                <div class="texture-sample" id="texture3">
+                    <div class="texture-label">Fine</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Extraction Potential</h2>
+            <div class="extraction-bars">
+                <div class="extract-bar">
+                    <div class="extract-label">Surface Area Index</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="surfaceBar" style="width: 50%; background: linear-gradient(90deg, #654321, #a67c52);"></div>
+                    </div>
+                    <span class="value-display" id="surfaceVal">50%</span>
+                </div>
+                <div class="extract-bar">
+                    <div class="extract-label">Extraction Speed</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="speedBar" style="width: 50%; background: linear-gradient(90deg, #8b4513, #daa520);"></div>
+                    </div>
+                    <span class="value-display" id="speedVal">50%</span>
+                </div>
+                <div class="extract-bar">
+                    <div class="extract-label">Flow Resistance</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="flowBar" style="width: 50%; background: linear-gradient(90deg, #a0522d, #cd853f);"></div>
+                    </div>
+                    <span class="value-display" id="flowVal">50%</span>
+                </div>
+                <div class="extract-bar">
+                    <div class="extract-label">Flavor Clarity</div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="clarityBar" style="width: 50%; background: linear-gradient(90deg, #6b4423, #b8860b);"></div>
+                    </div>
+                    <span class="value-display" id="clarityVal">50%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Distribution Analysis</h2>
+            <div class="distribution-viz">
+                <canvas id="histChart" width="800" height="300"></canvas>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Export to CaffeineForge</h2>
+            <div class="import-section">
+                <button onclick="exportGrind()" style="width: 100%;">Generate Brew Profile</button>
+                <div class="import-data" id="exportData" style="margin-top: 10px; max-height: 200px; overflow-y: auto;">
+                    Complete a grind to generate brew profile...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let isGrinding = false;
+        let grindProgress = 0;
+        let particleSizes = [];
+        let currentPreset = 'espresso';
+        
+        // Roast profile data (can be imported)
+        let roastProfile = {
+            level: 'Medium',
+            brittleness: 0.7,
+            density: 0.65,
+            caffeineContent: 95
+        };
+        
+        // Canvas contexts
+        const distCanvas = document.getElementById('distChart');
+        const distCtx = distCanvas.getContext('2d');
+        const histCanvas = document.getElementById('histChart');
+        const histCtx = histCanvas.getContext('2d');
+        
+        let animationFrame;
+        
+        // Control updates
+        document.getElementById('targetSize').addEventListener('input', (e) => {
+            document.getElementById('targetSizeValue').textContent = e.target.value + ' μm';
+            updateParameters();
+        });
+        
+        document.getElementById('burrGap').addEventListener('input', (e) => {
+            document.getElementById('burrGapValue').textContent = e.target.value + ' mm';
+            updateParameters();
+        });
+        
+        document.getElementById('rpm').addEventListener('input', (e) => {
+            document.getElementById('rpmValue').textContent = e.target.value + ' RPM';
+            updateParameters();
+        });
+        
+        document.getElementById('grindTime').addEventListener('input', (e) => {
+            document.getElementById('grindTimeValue').textContent = e.target.value + ' sec';
+            updateParameters();
+        });
+        
+        document.getElementById('burrTemp').addEventListener('input', (e) => {
+            document.getElementById('burrTempValue').textContent = e.target.value + '°C';
+            updateParameters();
+        });
+        
+        function selectGrind(type, size) {
+            currentPreset = type;
+            document.querySelectorAll('.grind-type').forEach(el => el.classList.remove('selected'));
+            event.target.closest('.grind-type').classList.add('selected');
+            
+            document.getElementById('targetSize').value = size;
+            document.getElementById('targetSizeValue').textContent = size + ' μm';
+            
+            // Auto-adjust burr gap
+            document.getElementById('burrGap').value = (size / 1000).toFixed(2);
+            document.getElementById('burrGapValue').textContent = (size / 1000).toFixed(2) + ' mm';
+            
+            updateParameters();
+        }
+        
+        function toggleGrind() {
+            if (!isGrinding) {
+                startGrind();
+            } else {
+                stopGrind();
+            }
+        }
+        
+        function startGrind() {
+            isGrinding = true;
+            grindProgress = 0;
+            particleSizes = [];
+            
+            document.getElementById('grindBtn').textContent = 'GRINDING...';
+            document.getElementById('grindBtn').style.background = 'linear-gradient(135deg, #8b4513, #cd853f)';
+            document.querySelectorAll('input[type="range"]').forEach(input => input.disabled = true);
+            
+            const rpm = parseFloat(document.getElementById('rpm').value);
+            const animSpeed = rpm / 600; // Normalize to animation speed
+            
+            document.getElementById('burrOuter').style.animation = `spin ${1/animSpeed}s linear infinite`;
+            document.getElementById('burrInner').style.animation = `spin ${1/animSpeed/1.2}s linear infinite reverse`;
+            
+            simulateGrind();
+        }
+        
+        function stopGrind() {
+            isGrinding = false;
+            document.getElementById('grindBtn').textContent = 'START GRIND';
+            document.getElementById('grindBtn').style.background = 'linear-gradient(135deg, #654321, #8b6914)';
+            document.querySelectorAll('input[type="range"]').forEach(input => input.disabled = false);
+            
+            document.getElementById('burrOuter').style.animation = 'none';
+            document.getElementById('burrInner').style.animation = 'none';
+            
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+        }
+        
+        function simulateGrind() {
+            if (!isGrinding) return;
+            
+            const targetSize = parseFloat(document.getElementById('targetSize').value);
+            const burrGap = parseFloat(document.getElementById('burrGap').value) * 1000; // Convert to μm
+            const rpm = parseFloat(document.getElementById('rpm').value);
+            const grindTime = parseFloat(document.getElementById('grindTime').value);
+            const burrTemp = parseFloat(document.getElementById('burrTemp').value);
+            
+            grindProgress += 0.05; // Progress increment
+            
+            // Generate particle size distribution
+            // Burr grinders create bimodal distribution (main peak + fines)
+            if (particleSizes.length < 1000) {
+                // Main distribution (Gaussian around target)
+                const speedFactor = rpm / 1200; // Higher speed = more fines
+                const tempFactor = 1 + (burrTemp - 25) / 100; // Heat degrades uniformity
+                const brittleness = roastProfile.brittleness;
+                
+                const stdDev = targetSize * 0.25 * speedFactor * tempFactor * (1 + (1 - brittleness) * 0.3);
+                
+                // Main peak (80-85% of particles)
+                if (Math.random() < 0.82) {
+                    let size = gaussianRandom(targetSize, stdDev);
+                    size = Math.max(50, Math.min(3000, size));
+                    particleSizes.push(size);
+                } else {
+                    // Fines peak (bimodal)
+                    let size = gaussianRandom(targetSize * 0.4, stdDev * 0.5);
+                    size = Math.max(50, Math.min(targetSize * 0.8, size));
+                    particleSizes.push(size);
+                }
+                
+                // Create visual particles
+                if (Math.random() < 0.1) {
+                    createParticle(particleSizes[particleSizes.length - 1]);
+                }
+            }
+            
+            updateStats();
+            updateVisuals();
+            updateDistributionChart();
+            updateHistogram();
+            
+            if (grindProgress >= grindTime) {
+                stopGrind();
+            } else {
+                animationFrame = requestAnimationFrame(simulateGrind);
+            }
+        }
+        
+        function gaussianRandom(mean, stdDev) {
+            // Box-Muller transform for Gaussian distribution
+            let u1 = Math.random();
+            let u2 = Math.random();
+            let z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+            return mean + z0 * stdDev;
+        }
+        
+        function createParticle(size) {
+            const container = document.getElementById('particles');
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            
+            const visualSize = Math.max(3, Math.min(15, size / 100));
+            particle.style.width = visualSize + 'px';
+            particle.style.height = visualSize + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            
+            // Color based on size
+            const darkness = Math.min(255, Math.max(0, 100 + (2000 - size) / 10));
+            particle.style.background = `rgb(${darkness * 0.5}, ${darkness * 0.45}, ${darkness * 0.3})`;
+            
+            container.appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 2000);
+        }
+        
+        function updateStats() {
+            if (particleSizes.length === 0) return;
+            
+            const targetSize = parseFloat(document.getElementById('targetSize').value);
+            
+            // Calculate mean
+            const mean = particleSizes.reduce((a, b) => a + b, 0) / particleSizes.length;
+            document.getElementById('meanSize').textContent = Math.round(mean) + ' μm';
+            
+            // Calculate standard deviation for uniformity
+            const variance = particleSizes.reduce((sum, size) => sum + Math.pow(size - mean, 2), 0) / particleSizes.length;
+            const stdDev = Math.sqrt(variance);
+            const uniformity = Math.max(0, 100 - (stdDev / mean * 100));
+            document.getElementById('uniformity').textContent = uniformity.toFixed(1) + '%';
+            
+            // Fines (< 200μm)
+            const fines = particleSizes.filter(s => s < 200).length / particleSizes.length * 100;
+            document.getElementById('fines').textContent = fines.toFixed(1) + '%';
+            
+            // Boulders (> 2x target)
+            const boulders = particleSizes.filter(s => s > targetSize * 2).length / particleSizes.length * 100;
+            document.getElementById('boulders').textContent = boulders.toFixed(1) + '%';
+            
+            // Surface area (inverse of particle size, roughly)
+            const surfaceArea = particleSizes.reduce((sum, size) => sum + 1000 / size, 0);
+            document.getElementById('surfaceArea').textContent = (surfaceArea / 10).toFixed(1) + ' cm²';
+            
+            // Heat generation
+            const rpm = parseFloat(document.getElementById('rpm').value);
+            const burrTemp = parseFloat(document.getElementById('burrTemp').value);
+            const heatGen = 25 + (rpm / 2000 * 30) + grindProgress * 0.5;
+            document.getElementById('heatGen').textContent = '+' + heatGen.toFixed(1) + '°C';
+            document.getElementById('burrTemp').value = Math.min(80, burrTemp + 0.2);
+            document.getElementById('burrTempValue').textContent = Math.min(80, burrTemp + 0.2).toFixed(0) + '°C';
+        }
+        
+        function updateVisuals() {
+            // Update texture visualizations
+            const targetSize = parseFloat(document.getElementById('targetSize').value);
+            
+            updateTexture('texture1', targetSize * 2);
+            updateTexture('texture2', targetSize);
+            updateTexture('texture3', targetSize * 0.5);
+            
+            // Update extraction bars
+            if (particleSizes.length > 0) {
+                const mean = particleSizes.reduce((a, b) => a + b, 0) / particleSizes.length;
+                const fines = particleSizes.filter(s => s < 200).length / particleSizes.length;
+                
+                // Surface area (inverse relationship)
+                const surface = Math.min(100, (1000 / mean) * 5);
+                document.getElementById('surfaceBar').style.width = surface + '%';
+                document.getElementById('surfaceVal').textContent = surface.toFixed(0) + '%';
+                
+                // Extraction speed (finer = faster)
+                const speed = Math.min(100, (1000 / mean) * 6);
+                document.getElementById('speedBar').style.width = speed + '%';
+                document.getElementById('speedVal').textContent = speed.toFixed(0) + '%';
+                
+                // Flow resistance (finer = more resistance)
+                const flow = Math.min(100, (1000 / mean) * 4 + fines * 100);
+                document.getElementById('flowBar').style.width = flow + '%';
+                document.getElementById('flowVal').textContent = flow.toFixed(0) + '%';
+                
+                // Clarity (uniformity-based)
+                const uniformity = parseFloat(document.getElementById('uniformity').textContent);
+                document.getElementById('clarityBar').style.width = uniformity + '%';
+                document.getElementById('clarityVal').textContent = uniformity.toFixed(0) + '%';
+            }
+        }
+        
+        function updateTexture(id, particleSize) {
+            const element = document.getElementById(id);
+            const density = Math.max(2, Math.min(20, 2000 / particleSize));
+            const dotSize = Math.max(1, Math.min(8, particleSize / 100));
+            
+            // Generate random dot pattern
+            let gradient = 'radial-gradient(circle, ';
+            for (let i = 0; i < density; i++) {
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+                const brightness = 100 + Math.random() * 100;
+                gradient += `rgba(${brightness * 0.5}, ${brightness * 0.45}, ${brightness * 0.3}, ${0.6 + Math.random() * 0.4}) ${dotSize}px, transparent ${dotSize + 2}px), radial-gradient(circle, `;
+            }
+            gradient = gradient.slice(0, -27); // Remove last part
+            
+            element.style.background = '#2a1810';
+            element.style.backgroundImage = gradient;
+        }
+        
+        function updateDistributionChart() {
+            if (particleSizes.length === 0) return;
+            
+            distCtx.clearRect(0, 0, distCanvas.width, distCanvas.height);
+            
+            // Background
+            distCtx.fillStyle = 'rgba(0,0,0,0.3)';
+            distCtx.fillRect(0, 0, distCanvas.width, distCanvas.height);
+            
+            // Grid
+            distCtx.strokeStyle = 'rgba(166, 124, 82, 0.2)';
+            distCtx.lineWidth = 1;
+            for (let i = 0; i <= 10; i++) {
+                const y = i * distCanvas.height / 10;
+                distCtx.beginPath();
+                distCtx.moveTo(0, y);
+                distCtx.lineTo(distCanvas.width, y);
+                distCtx.stroke();
+            }
+            
+            // Sort and plot cumulative distribution
+            const sorted = [...particleSizes].sort((a, b) => a - b);
+            const maxSize = Math.max(...sorted);
+            
+            distCtx.strokeStyle = '#a67c52';
+            distCtx.lineWidth = 3;
+            distCtx.beginPath();
+            
+            sorted.forEach((size, i) => {
+                const x = (size / maxSize) * distCanvas.width;
+                const y = distCanvas.height - (i / sorted.length * distCanvas.height);
+                
+                if (i === 0) {
+                    distCtx.moveTo(x, y);
+                } else {
+                    distCtx.lineTo(x, y);
+                }
+            });
+            
+            distCtx.stroke();
+            
+            // Labels
+            distCtx.fillStyle = '#b89968';
+            distCtx.font = '12px Arial';
+            distCtx.fillText('Cumulative Distribution', 10, 20);
+            distCtx.fillText('0 μm', 10, distCanvas.height - 10);
+            distCtx.fillText(Math.round(maxSize) + ' μm', distCanvas.width - 60, distCanvas.height - 10);
+        }
+        
+        function updateHistogram() {
+            if (particleSizes.length === 0) return;
+            
+            histCtx.clearRect(0, 0, histCanvas.width, histCanvas.height);
+            
+            // Background
+            histCtx.fillStyle = 'rgba(0,0,0,0.2)';
+            histCtx.fillRect(0, 0, histCanvas.width, histCanvas.height);
+            
+            // Create bins
+            const bins = 30;
+            const maxSize = Math.max(...particleSizes);
+            const binWidth = maxSize / bins;
+            const histogram = new Array(bins).fill(0);
+            
+            particleSizes.forEach(size => {
+                const bin = Math.min(bins - 1, Math.floor(size / binWidth));
+                histogram[bin]++;
+            });
+            
+            const maxCount = Math.max(...histogram);
+            const barWidth = histCanvas.width / bins;
+            
+            // Draw bars
+            histogram.forEach((count, i) => {
+                const height = (count / maxCount) * histCanvas.height * 0.8;
+                const x = i * barWidth;
+                const y = histCanvas.height - height;
+                
+                const gradient = histCtx.createLinearGradient(x, y, x, histCanvas.height);
+                gradient.addColorStop(0, '#a67c52');
+                gradient.addColorStop(1, '#654321');
+                
+                histCtx.fillStyle = gradient;
+                histCtx.fillRect(x, y, barWidth - 2, height);
+            });
+            
+            // Labels
+            histCtx.fillStyle = '#b89968';
+            histCtx.font = '12px Arial';
+            histCtx.fillText('Particle Size Distribution', 10, 20);
+        }
+        
+        function updateParameters() {
+            // Real-time visual updates without grinding
+            if (!isGrinding) {
+                updateVisuals();
+            }
+        }
+        
+        function exportGrind() {
+            if (particleSizes.length === 0) {
+                document.getElementById('exportData').textContent = 'Complete a grind to generate brew profile...';
+                return;
+            }
+            
+            const mean = particleSizes.reduce((a, b) => a + b, 0) / particleSizes.length;
+            const uniformity = parseFloat(document.getElementById('uniformity').textContent);
+            const fines = parseFloat(document.getElementById('fines').textContent);
+            const surface = parseFloat(document.getElementById('surfaceVal').textContent);
+            
+            // Determine optimal brew method
+            let brewMethod, waterTemp, brewTime, ratio, pressure;
+            
+            if (mean < 250) {
+                brewMethod = 'Espresso';
+                waterTemp = 93;
+                brewTime = 0.5;
+                ratio = '1:2';
+                pressure = '9 bar';
+            } else if (mean < 500) {
+                brewMethod = 'AeroPress';
+                waterTemp = 85;
+                brewTime = 2.0;
+                ratio = '1:15';
+                pressure = '0.5 bar';
+            } else if (mean < 800) {
+                brewMethod = 'Pour Over';
+                waterTemp = 92;
+                brewTime = 3.5;
+                ratio = '1:16';
+                pressure = 'gravity';
+            } else if (mean < 1100) {
+                brewMethod = 'Drip';
+                waterTemp = 90;
+                brewTime = 5.0;
+                ratio = '1:17';
+                pressure = 'gravity';
+            } else {
+                brewMethod = 'French Press/Cold Brew';
+                waterTemp = mean < 1500 ? 92 : 20;
+                brewTime = mean < 1500 ? 4.0 : 720;
+                ratio = '1:15';
+                pressure = 'gravity';
+            }
+            
+            const profile = {
+                grindProfile: {
+                    meanParticleSize: Math.round(mean) + 'μm',
+                    uniformity: uniformity.toFixed(1) + '%',
+                    finesContent: fines.toFixed(1) + '%',
+                    totalParticles: particleSizes.length,
+                    surfaceArea: document.getElementById('surfaceArea').textContent
+                },
+                extractionCharacteristics: {
+                    surfaceAreaIndex: surface.toFixed(0) + '%',
+                    extractionSpeed: document.getElementById('speedVal').textContent,
+                    flowResistance: document.getElementById('flowVal').textContent,
+                    flavorClarity: document.getElementById('clarityVal').textContent
+                },
+                brewRecommendations: {
+                    optimalMethod: brewMethod,
+                    waterTemp: waterTemp + '°C',
+                    brewTime: brewTime + ' min',
+                    coffeeWaterRatio: ratio,
+                    pressure: pressure,
+                    expectedExtraction: (18 + uniformity / 5).toFixed(1) + '%'
+                },
+                caffeineForgeData: {
+                    extractionEfficiency: (uniformity / 100 * 0.9).toFixed(2),
+                    caffeineYield: (roastProfile.caffeineContent * (uniformity / 100) * 0.85).toFixed(1) + 'mg/serving',
+                    peakConcentration: '45-60min',
+                    recommendations: uniformity > 80 ? 
+                        'Excellent uniformity - expect clean, balanced extraction' :
+                        uniformity > 60 ?
+                        'Good uniformity - may have slight channeling' :
+                        'Poor uniformity - expect uneven extraction, adjust technique'
+                }
+            };
+            
+            document.getElementById('exportData').textContent = JSON.stringify(profile, null, 2);
+        }
+        
+        // Initialize
+        updateParameters();
+        updateDistributionChart();
+        updateHistogram();
+    </script>
+</body>
+</html>
