@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterForge - The Solvent Architect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --water-primary: #1a73e8;
+            --water-secondary: #4285f4;
+            --calcium-color: #e53935;
+            --magnesium-color: #8e24aa;
+            --alkalinity-color: #43a047;
+            --neutral-color: #757575;
+            --scale-red: #d32f2f;
+            --scale-orange: #f57c00;
+            --scale-green: #388e3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--water-primary);
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--neutral-color);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .control-panel, .visualization-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            color: var(--water-primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ion-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .ion-card {
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ion-card.calcium {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-left: 5px solid var(--calcium-color);
+        }
+        
+        .ion-card.magnesium {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            border-left: 5px solid var(--magnesium-color);
+        }
+        
+        .ion-card.alkalinity {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-left: 5px solid var(--alkalinity-color);
+        }
+        
+        .ion-card.purity {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            border-left: 5px solid var(--neutral-color);
+        }
+        
+        .ion-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .slider-value {
+            font-weight: 600;
+            color: var(--water-primary);
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .slider.calcium {
+            background: linear-gradient(to right, #ffebee, var(--calcium-color));
+        }
+        
+        .slider.magnesium {
+            background: linear-gradient(to right, #f3e5f5, var(--magnesium-color));
+        }
+        
+        .slider.alkalinity {
+            background: linear-gradient(to right, #e8f5e9, var(--alkalinity-color));
+        }
+        
+        .slider.purity {
+            background: linear-gradient(to right, #f5f5f5, var(--neutral-color));
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--water-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .triangle-container {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            margin: 20px 0 30px;
+        }
+        
+        .triangle-svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .triangle {
+            fill: rgba(26, 115, 232, 0.05);
+            stroke: var(--water-primary);
+            stroke-width: 2;
+        }
+        
+        .triangle-vertex {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .vertex-hardness {
+            fill: var(--calcium-color);
+        }
+        
+        .vertex-alkalinity {
+            fill: var(--alkalinity-color);
+        }
+        
+        .vertex-purity {
+            fill: var(--neutral-color);
+        }
+        
+        .sweet-spot {
+            fill: #ff9800;
+            stroke: white;
+            stroke-width: 2;
+            filter: drop-shadow(0 0 5px rgba(255, 152, 0, 0.5));
+            cursor: move;
+        }
+        
+        .sweet-spot-label {
+            font-weight: 600;
+            fill: #ff9800;
+            font-size: 0.9rem;
+        }
+        
+        .flavor-profile {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .flavor-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--water-primary);
+        }
+        
+        .flavor-indicator {
+            height: 10px;
+            border-radius: 5px;
+            background: #e0e0e0;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        
+        .flavor-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        .fruity-acidic {
+            background: linear-gradient(to right, #ff4081, #f50057);
+        }
+        
+        .chocolate-creamy {
+            background: linear-gradient(to right, #8d6e63, #5d4037);
+        }
+        
+        .balanced {
+            background: linear-gradient(to right, #4caf50, #2e7d32);
+        }
+        
+        .results-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .metric-card {
+            padding: 20px;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+        
+        .metric-title {
+            font-size: 1rem;
+            color: var(--neutral-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .lsi-indicator {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(to right, var(--scale-green), var(--scale-orange), var(--scale-red));
+            margin-top: 10px;
+            position: relative;
+        }
+        
+        .lsi-marker {
+            position: absolute;
+            top: -5px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid var(--water-primary);
+            transform: translateX(-50%);
+            transition: left 0.5s ease;
+        }
+        
+        .lsi-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: var(--neutral-color);
+        }
+        
+        .export-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .export-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--water-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0d62d9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26, 115, 232, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f1f3f4;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8eaed;
+            transform: translateY(-2px);
+        }
+        
+        .hub-connection {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .connection-icon {
+            font-size: 1.5rem;
+            color: #43a047;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .ion-effect {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 8px;
+        }
+        
+        .positive {
+            color: #43a047;
+        }
+        
+        .negative {
+            color: #e53935;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-tint"></i> WaterForge</h1>
+            <p class="subtitle">The active solvent architect. Design your water's ionic profile to target specific flavor compounds in coffee extraction.</p>
+            <p>Water isn't just a medium—it's the chemical key that unlocks flavors.</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <h2 class="panel-title"><i class="fas fa-sliders-h"></i> Water Chemistry Controls</h2>
+                
+                <div class="ion-controls">
+                    <div class="ion-card calcium">
+                        <h3 class="ion-title"><i class="fas fa-atom" style="color: var(--calcium-color);"></i> Calcium (Ca²⁺)</h3>
+                        <p class="ion-effect"><span class="positive">+ Chocolate, Creamy, Sweet</span> • <span class="negative">– Can mute acidity</span></p>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Concentration</span>
+                                <span class="slider-value" id="calcium-value">40 ppm</span>
+                            </div>
+                            <input type="range" min="0" max="150" value="40" class="slider calcium" id="calcium-slider">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Mg/Ca Ratio</span>
+                                <span class="slider-value" id="ratio-value">1.0</span>
+                            </div>
+                            <input type="range" min="0.1" max="3" step="0.1" value="1.0" class="slider magnesium" id="ratio-slider">
+                        </div>
+                    </div>
+                    
+                    <div class="ion-card magnesium">
+                        <h3 class="ion-title"><i class="fas fa-bolt" style="color: var(--magnesium-color);"></i> Magnesium (Mg²⁺)</h3>
+                        <p class="ion-effect"><span class="positive">+ Fruity, Acidic, Bright</span> • <span class="negative">– Can be too sharp</span></p>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Concentration</span>
+                                <span class="slider-value" id="magnesium-value">40 ppm</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="40" class="slider magnesium" id="magnesium-slider">
+                        </div>
+                    </div>
+                    
+                    <div class="ion-card alkalinity">
+                        <h3 class="ion-title"><i class="fas fa-balance-scale" style="color: var(--alkalinity-color);"></i> Alkalinity (HCO₃⁻)</h3>
+                        <p class="ion-effect"><span class="positive">+ Buffers acidity, smooth</span> • <span class="negative">– Mutes brightness</span></p>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Buffer Capacity</span>
+                                <span class="slider-value" id="alkalinity-value">40 ppm</span>
+                            </div>
+                            <input type="range" min="0" max="200" value="40" class="slider alkalinity" id="alkalinity-slider">
+                        </div>
+                    </div>
+                    
+                    <div class="ion-card purity">
+                        <h3 class="ion-title"><i class="fas fa-filter" style="color: var(--neutral-color);"></i> Purity / TDS</h3>
+                        <p class="ion-effect"><span class="positive">+ Clean base flavor</span> • <span class="negative">– Low extraction power</span></p>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Total Dissolved Solids</span>
+                                <span class="slider-value" id="tds-value">120 ppm</span>
+                            </div>
+                            <input type="range" min="0" max="300" value="120" class="slider purity" id="tds-slider">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flavor-profile">
+                    <h3 class="flavor-title"><i class="fas fa-wine-glass-alt"></i> Resulting Flavor Profile</h3>
+                    
+                    <div class="flavor-row">
+                        <div class="flavor-label">Fruity & Acidic (Mg²⁺ driven)</div>
+                        <div class="flavor-indicator">
+                            <div class="flavor-fill fruity-acidic" id="fruity-bar" style="width: 50%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flavor-row">
+                        <div class="flavor-label">Chocolate & Creamy (Ca²⁺ driven)</div>
+                        <div class="flavor-indicator">
+                            <div class="flavor-fill chocolate-creamy" id="chocolate-bar" style="width: 50%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flavor-row">
+                        <div class="flavor-label">Balanced Extraction</div>
+                        <div class="flavor-indicator">
+                            <div class="flavor-fill balanced" id="balance-bar" style="width: 80%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="visualization-panel">
+                <h2 class="panel-title"><i class="fas fa-chart-pie"></i> Water Profile Triangle</h2>
+                <p>Drag the orange point to find your water's "sweet spot" in the balance between hardness, alkalinity, and purity.</p>
+                
+                <div class="triangle-container">
+                    <svg class="triangle-svg" viewBox="0 0 500 450" id="triangle-svg">
+                        <!-- Triangle -->
+                        <polygon class="triangle" points="250,50 450,400 50,400"/>
+                        
+                        <!-- Grid lines -->
+                        <line x1="250" y1="50" x2="250" y2="400" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="5,5"/>
+                        <line x1="250" y1="50" x2="150" y2="400" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="5,5"/>
+                        <line x1="250" y1="50" x2="350" y2="400" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="5,5"/>
+                        
+                        <!-- Vertex labels -->
+                        <text x="250" y="30" text-anchor="middle" class="triangle-vertex vertex-hardness">HARDNESS (Ca²⁺ + Mg²⁺)</text>
+                        <text x="60" y="420" text-anchor="start" class="triangle-vertex vertex-alkalinity">ALKALINITY (HCO₃⁻)</text>
+                        <text x="440" y="420" text-anchor="end" class="triangle-vertex vertex-purity">PURITY (Low TDS)</text>
+                        
+                        <!-- Sweet spot marker -->
+                        <circle class="sweet-spot" cx="250" cy="225" r="12" id="sweet-spot"/>
+                        <text class="sweet-spot-label" x="250" y="215" text-anchor="middle" id="sweet-spot-label">Sweet Spot</text>
+                    </svg>
+                </div>
+                
+                <div class="hub-connection">
+                    <div class="connection-icon"><i class="fas fa-exchange-alt"></i></div>
+                    <div>
+                        <strong>Connected to Master Hub:</strong> Water chemistry profile will be sent to GrindForge and BrewForge to calculate final extraction metrics.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-panel">
+            <h2 class="panel-title"><i class="fas fa-calculator"></i> Chemistry Metrics</h2>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title"><i class="fas fa-atom" style="color: var(--calcium-color);"></i> Extraction Power Index</div>
+                    <div class="metric-value" id="extraction-index">7.2</div>
+                    <div class="metric-desc">Higher values favor fruity acids, lower values favor chocolate/creamy notes</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-title"><i class="fas fa-balance-scale" style="color: var(--alkalinity-color);"></i> Buffer Capacity</div>
+                    <div class="metric-value" id="buffer-value">Medium</div>
+                    <div class="metric-desc">How much acidity will be muted during extraction</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-title"><i class="fas fa-hard-hat" style="color: var(--scale-orange);"></i> Langelier Saturation Index</div>
+                    <div class="metric-value" id="lsi-value">-0.4</div>
+                    <div class="metric-desc">Scale forming potential in BrewForge equipment</div>
+                    
+                    <div class="lsi-indicator">
+                        <div class="lsi-marker" id="lsi-marker" style="left: 45%"></div>
+                    </div>
+                    <div class="lsi-labels">
+                        <span>Corrosive (-3)</span>
+                        <span>Neutral (0)</span>
+                        <span>Scaling (+3)</span>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-title"><i class="fas fa-vial" style="color: var(--water-primary);"></i> Ionic Profile Summary</div>
+                    <div class="metric-value" id="profile-summary">Balanced</div>
+                    <div class="metric-desc" id="profile-desc">Good for medium roasts, versatile extraction</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="export-panel">
+            <h2 class="panel-title"><i class="fas fa-share-square"></i> Export Water Profile</h2>
+            <p>Send this water chemistry profile to the next stage in the brewing simulation. GrindForge will use the extraction power index to determine optimal particle size.</p>
+            
+            <div class="export-controls">
+                <button class="btn btn-primary" id="export-btn">
+                    <i class="fas fa-paper-plane"></i> Export to Master Hub
+                </button>
+                <button class="btn btn-secondary" id="reset-btn">
+                    <i class="fas fa-redo"></i> Reset to Default
+                </button>
+                <button class="btn btn-secondary" id="preset-btn">
+                    <i class="fas fa-flask"></i> Load Preset
+                </button>
+            </div>
+            
+            <div id="export-status" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
+        </div>
+        
+        <footer>
+            <p>WaterForge v1.0 | Part of the Coffee Science Simulation Suite | Data integrates with: RoastForge → WaterForge → GrindForge → BrewForge → CaffeineForge</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">Water chemistry based on SCA Water Standards (2019) | LSI calculation adapted from coffee industry standards</p>
+        </footer>
+    </div>
+
+    <script>
+        // Water chemistry model
+        const waterModel = {
+            calcium: 40,
+            magnesium: 40,
+            alkalinity: 40,
+            tds: 120,
+            mgCaRatio: 1.0,
+            
+            // Calculate derived metrics
+            calculateExtractionIndex() {
+                // Extraction Power = (Mg * 1.5) / (Ca * 0.8)
+                // Higher values = more fruity/bright extraction
+                return ((this.magnesium * 1.5) / (this.calcium * 0.8)).toFixed(2);
+            },
+            
+            calculateBufferCapacity() {
+                if (this.alkalinity < 20) return "Low";
+                if (this.alkalinity < 60) return "Medium";
+                if (this.alkalinity < 100) return "High";
+                return "Very High";
+            },
+            
+            calculateLSI() {
+                // Simplified Langelier Saturation Index
+                // Real formula: LSI = pH + TF + CF + AF - 12.1
+                // Where TF = temperature factor, CF = calcium factor, AF = alkalinity factor
+                // We'll use a simplified version for demonstration
+                const hardness = this.calcium + this.magnesium;
+                const lsi = (hardness / 100) + (this.alkalinity / 100) - (this.tds / 200) - 0.5;
+                return lsi.toFixed(2);
+            },
+            
+            calculateProfileSummary() {
+                const extractionIndex = parseFloat(this.calculateExtractionIndex());
+                const buffer = this.calculateBufferCapacity();
+                
+                if (extractionIndex > 1.5 && buffer === "Low") return "Bright & Fruity";
+                if (extractionIndex > 1.5 && buffer === "Medium") return "Balanced Bright";
+                if (extractionIndex > 1.5 && buffer === "High") return "Muted Bright";
+                if (extractionIndex <= 1.5 && extractionIndex > 0.8 && buffer === "Low") return "Chocolate Forward";
+                if (extractionIndex <= 1.5 && extractionIndex > 0.8 && buffer === "Medium") return "Balanced";
+                if (extractionIndex <= 1.5 && extractionIndex > 0.8 && buffer === "High") return "Smooth & Sweet";
+                if (extractionIndex <= 0.8 && buffer === "Low") return "Flat & Dull";
+                if (extractionIndex <= 0.8 && buffer === "Medium") return "Heavy Body";
+                if (extractionIndex <= 0.8 && buffer === "High") return "Very Smooth";
+                return "Custom Profile";
+            },
+            
+            calculateProfileDescription() {
+                const profile = this.calculateProfileSummary();
+                const descriptions = {
+                    "Bright & Fruity": "Excellent for light roasts, highlights acidity and fruit notes",
+                    "Balanced Bright": "Versatile for most roast levels, good clarity with balance",
+                    "Muted Bright": "Good for acidic beans that need slight rounding",
+                    "Chocolate Forward": "Enhances sweetness and body in medium-dark roasts",
+                    "Balanced": "SCA standard range, works well with most coffees",
+                    "Smooth & Sweet": "Ideal for dark roasts, reduces harshness",
+                    "Flat & Dull": "Under-extracts bright notes, not recommended",
+                    "Heavy Body": "Maximizes mouthfeel at expense of clarity",
+                    "Very Smooth": "For very dark roasts or espresso blends",
+                    "Custom Profile": "Unique water chemistry for experimental brewing"
+                };
+                return descriptions[profile] || "Custom water profile";
+            },
+            
+            calculateFlavorBars() {
+                const totalCations = this.calcium + this.magnesium;
+                const fruityPercent = totalCations > 0 ? (this.magnesium / totalCations) * 100 : 50;
+                const chocolatePercent = totalCations > 0 ? (this.calcium / totalCations) * 100 : 50;
+                
+                // Balance is based on how close Mg/Ca ratio is to 1:1 and alkalinity in middle range
+                const ratioBalance = 100 - Math.abs(this.mgCaRatio - 1) * 50;
+                const alkalinityBalance = this.alkalinity > 30 && this.alkalinity < 70 ? 100 : 
+                                        this.alkalinity > 20 && this.alkalinity < 80 ? 80 : 60;
+                const balancePercent = (ratioBalance + alkalinityBalance) / 2;
+                
+                return {
+                    fruity: Math.min(fruityPercent, 100),
+                    chocolate: Math.min(chocolatePercent, 100),
+                    balance: Math.min(balancePercent, 100)
+                };
+            },
+            
+            // Convert to triangle coordinates (barycentric to Cartesian)
+            calculateTrianglePosition() {
+                // Convert concentrations to triangle coordinates
+                // Hardness = Ca + Mg (x-axis)
+                // Alkalinity = HCO3 (y-axis from bottom left)
+                // Purity = TDS - (Ca + Mg + HCO3) (y-axis from bottom right)
+                
+                const total = this.calcium + this.magnesium + this.alkalinity + (this.tds / 2);
+                const hardnessPercent = (this.calcium + this.magnesium) / total * 100;
+                const alkalinityPercent = this.alkalinity / total * 100;
+                const purityPercent = (this.tds / 2) / total * 100;
+                
+                // Convert to Cartesian coordinates for equilateral triangle
+                // Triangle vertices: Top (250,50), Left (50,400), Right (450,400)
+                const x = 250 + (hardnessPercent - alkalinityPercent) * 1.5;
+                const y = 400 - (hardnessPercent + alkalinityPercent) * 1.5;
+                
+                // Constrain to triangle
+                return {
+                    x: Math.max(50, Math.min(450, x)),
+                    y: Math.max(50, Math.min(400, y))
+                };
+            },
+            
+            // Update from triangle position
+            updateFromTrianglePosition(x, y) {
+                // Convert Cartesian to barycentric coordinates
+                // Vertices: A(250,50), B(50,400), C(450,400)
+                const v0 = [450-250, 400-50]; // C - A
+                const v1 = [50-250, 400-50];  // B - A
+                const v2 = [x-250, y-50];     // P - A
+                
+                const dot00 = v0[0]*v0[0] + v0[1]*v0[1];
+                const dot01 = v0[0]*v1[0] + v0[1]*v1[1];
+                const dot02 = v0[0]*v2[0] + v0[1]*v2[1];
+                const dot11 = v1[0]*v1[0] + v1[1]*v1[1];
+                const dot12 = v1[0]*v2[0] + v1[1]*v2[1];
+                
+                const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+                const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+                const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+                const w = 1 - u - v;
+                
+                // u = weight for vertex C (Purity), v = weight for vertex B (Alkalinity), w = weight for vertex A (Hardness)
+                // Scale to reasonable values
+                this.calcium = Math.round(w * 80 + 20);
+                this.magnesium = Math.round(w * 60 + 20);
+                this.alkalinity = Math.round(v * 150);
+                this.tds = Math.round(u * 250 + 50);
+                this.mgCaRatio = 1.0;
+                
+                updateUIFromModel();
+            }
+        };
+
+        // DOM elements
+        const calciumSlider = document.getElementById('calcium-slider');
+        const magnesiumSlider = document.getElementById('magnesium-slider');
+        const alkalinitySlider = document.getElementById('alkalinity-slider');
+        const tdsSlider = document.getElementById('tds-slider');
+        const ratioSlider = document.getElementById('ratio-slider');
+        const sweetSpot = document.getElementById('sweet-spot');
+        const triangleSvg = document.getElementById('triangle-svg');
+
+        // Initialize
+        function init() {
+            updateUIFromModel();
+            setupEventListeners();
+            setupTriangleInteraction();
+        }
+
+        function updateUIFromModel() {
+            // Update slider values and displays
+            document.getElementById('calcium-value').textContent = `${waterModel.calcium} ppm`;
+            document.getElementById('magnesium-value').textContent = `${waterModel.magnesium} ppm`;
+            document.getElementById('alkalinity-value').textContent = `${waterModel.alkalinity} ppm`;
+            document.getElementById('tds-value').textContent = `${waterModel.tds} ppm`;
+            document.getElementById('ratio-value').textContent = waterModel.mgCaRatio.toFixed(1);
+            
+            calciumSlider.value = waterModel.calcium;
+            magnesiumSlider.value = waterModel.magnesium;
+            alkalinitySlider.value = waterModel.alkalinity;
+            tdsSlider.value = waterModel.tds;
+            ratioSlider.value = waterModel.mgCaRatio;
+            
+            // Update metrics
+            document.getElementById('extraction-index').textContent = waterModel.calculateExtractionIndex();
+            document.getElementById('buffer-value').textContent = waterModel.calculateBufferCapacity();
+            
+            const lsi = waterModel.calculateLSI();
+            document.getElementById('lsi-value').textContent = lsi;
+            
+            // Update LSI marker position (-3 to +3 range)
+            const lsiPercent = (parseFloat(lsi) + 3) / 6 * 100;
+            document.getElementById('lsi-marker').style.left = `${Math.max(0, Math.min(100, lsiPercent))}%`;
+            
+            // Update profile summary
+            document.getElementById('profile-summary').textContent = waterModel.calculateProfileSummary();
+            document.getElementById('profile-desc').textContent = waterModel.calculateProfileDescription();
+            
+            // Update flavor bars
+            const flavorBars = waterModel.calculateFlavorBars();
+            document.getElementById('fruity-bar').style.width = `${flavorBars.fruity}%`;
+            document.getElementById('chocolate-bar').style.width = `${flavorBars.chocolate}%`;
+            document.getElementById('balance-bar').style.width = `${flavorBars.balance}%`;
+            
+            // Update triangle sweet spot position
+            const pos = waterModel.calculateTrianglePosition();
+            sweetSpot.setAttribute('cx', pos.x);
+            sweetSpot.setAttribute('cy', pos.y);
+            document.getElementById('sweet-spot-label').setAttribute('x', pos.x);
+            document.getElementById('sweet-spot-label').setAttribute('y', pos.y - 20);
+        }
+
+        function setupEventListeners() {
+            calciumSlider.addEventListener('input', (e) => {
+                waterModel.calcium = parseInt(e.target.value);
+                waterModel.mgCaRatio = waterModel.magnesium / waterModel.calcium;
+                updateUIFromModel();
+            });
+            
+            magnesiumSlider.addEventListener('input', (e) => {
+                waterModel.magnesium = parseInt(e.target.value);
+                waterModel.mgCaRatio = waterModel.magnesium / waterModel.calcium;
+                updateUIFromModel();
+            });
+            
+            alkalinitySlider.addEventListener('input', (e) => {
+                waterModel.alkalinity = parseInt(e.target.value);
+                updateUIFromModel();
+            });
+            
+            tdsSlider.addEventListener('input', (e) => {
+                waterModel.tds = parseInt(e.target.value);
+                updateUIFromModel();
+            });
+            
+            ratioSlider.addEventListener('input', (e) => {
+                waterModel.mgCaRatio = parseFloat(e.target.value);
+                // Adjust magnesium based on new ratio
+                waterModel.magnesium = Math.round(waterModel.calcium * waterModel.mgCaRatio);
+                updateUIFromModel();
+            });
+            
+            // Export button
+            document.getElementById('export-btn').addEventListener('click', () => {
+                const exportData = {
+                    calcium: waterModel.calcium,
+                    magnesium: waterModel.magnesium,
+                    alkalinity: waterModel.alkalinity,
+                    tds: waterModel.tds,
+                    extractionIndex: waterModel.calculateExtractionIndex(),
+                    bufferCapacity: waterModel.calculateBufferCapacity(),
+                    lsi: waterModel.calculateLSI(),
+                    profile: waterModel.calculateProfileSummary(),
+                    timestamp: new Date().toISOString()
+                };
+                
+                // In a real implementation, this would send to a central hub
+                // For now, we'll simulate with localStorage
+                localStorage.setItem('waterForgeProfile', JSON.stringify(exportData));
+                
+                const statusDiv = document.getElementById('export-status');
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#e8f5e9';
+                statusDiv.style.color = '#2e7d32';
+                statusDiv.innerHTML = `
+                    <strong><i class="fas fa-check-circle"></i> Water profile exported!</strong>
+                    <div style="margin-top: 5px; font-size: 0.9rem;">
+                        Extraction Power Index: ${exportData.extractionIndex} sent to GrindForge<br>
+                        Buffer Capacity: ${exportData.bufferCapacity} sent to BrewForge
+                    </div>
+                `;
+                
+                // Simulate sending to other modules
+                setTimeout(() => {
+                    if (typeof window.updateMasterHub === 'function') {
+                        window.updateMasterHub('water', exportData);
+                    }
+                }, 500);
+            });
+            
+            // Reset button
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                waterModel.calcium = 40;
+                waterModel.magnesium = 40;
+                waterModel.alkalinity = 40;
+                waterModel.tds = 120;
+                waterModel.mgCaRatio = 1.0;
+                updateUIFromModel();
+                
+                const statusDiv = document.getElementById('export-status');
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#fff3e0';
+                statusDiv.style.color = '#ef6c00';
+                statusDiv.innerHTML = '<strong><i class="fas fa-sync-alt"></i> Reset to SCA Standard Water Profile</strong>';
+                
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            });
+            
+            // Preset button
+            document.getElementById('preset-btn').addEventListener('click', () => {
+                const presets = [
+                    {name: "SCA Standard", calcium: 40, magnesium: 40, alkalinity: 40, tds: 120, ratio: 1.0},
+                    {name: "Third Wave Bright", calcium: 20, magnesium: 60, alkalinity: 30, tds: 110, ratio: 3.0},
+                    {name: "Espresso Sweet", calcium: 60, magnesium: 20, alkalinity: 80, tds: 150, ratio: 0.33},
+                    {name: "Nordic Light", calcium: 15, magnesium: 50, alkalinity: 20, tds: 80, ratio: 3.33},
+                    {name: "Italian Dark", calcium: 80, magnesium: 10, alkalinity: 100, tds: 200, ratio: 0.125}
+                ];
+                
+                const randomPreset = presets[Math.floor(Math.random() * presets.length)];
+                waterModel.calcium = randomPreset.calcium;
+                waterModel.magnesium = randomPreset.magnesium;
+                waterModel.alkalinity = randomPreset.alkalinity;
+                waterModel.tds = randomPreset.tds;
+                waterModel.mgCaRatio = randomPreset.ratio;
+                updateUIFromModel();
+                
+                const statusDiv = document.getElementById('export-status');
+                statusDiv.style.display = 'block';
+                statusDiv.style.background = '#e3f2fd';
+                statusDiv.style.color = '#1565c0';
+                statusDiv.innerHTML = `<strong><i class="fas fa-flask"></i> Loaded "${randomPreset.name}" Preset</strong>`;
+                
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            });
+        }
+
+        function setupTriangleInteraction() {
+            let isDragging = false;
+            
+            sweetSpot.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                e.preventDefault();
+            });
+            
+            triangleSvg.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const rect = triangleSvg.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Convert SVG coordinates to viewBox coordinates
+                const svgPoint = triangleSvg.createSVGPoint();
+                svgPoint.x = x;
+                svgPoint.y = y;
+                const transformedPoint = svgPoint.matrixTransform(triangleSvg.getScreenCTM().inverse());
+                
+                // Update model and UI
+                waterModel.updateFromTrianglePosition(transformedPoint.x, transformedPoint.y);
+            });
+            
+            triangleSvg.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+            
+            triangleSvg.addEventListener('mouseleave', () => {
+                isDragging = false;
+            });
+            
+            // Also allow clicking anywhere in triangle
+            triangleSvg.addEventListener('click', (e) => {
+                const rect = triangleSvg.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const svgPoint = triangleSvg.createSVGPoint();
+                svgPoint.x = x;
+                svgPoint.y = y;
+                const transformedPoint = svgPoint.matrixTransform(triangleSvg.getScreenCTM().inverse());
+                
+                waterModel.updateFromTrianglePosition(transformedPoint.x, transformedPoint.y);
+            });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Global function for hub integration
+        window.getWaterProfile = function() {
+            return {
+                calcium: waterModel.calcium,
+                magnesium: waterModel.magnesium,
+                alkalinity: waterModel.alkalinity,
+                tds: waterModel.tds,
+                extractionIndex: waterModel.calculateExtractionIndex(),
+                bufferCapacity: waterModel.calculateBufferCapacity(),
+                lsi: waterModel.calculateLSI(),
+                profile: waterModel.calculateProfileSummary()
+            };
+        };
+    </script>
+</body>
+</html>
