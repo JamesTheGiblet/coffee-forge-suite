@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WaterForge - The Solvent Architect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --water-primary: #1a73e8;
+            --water-secondary: #4285f4;
+            --calcium-color: #e53935;
+            --magnesium-color: #8e24aa;
+            --alkalinity-color: #43a047;
+            --neutral-color: #757575;
+            --scale-red: #d32f2f;
+            --scale-orange: #f57c00;
+            --scale-green: #388e3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--water-primary);
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--neutral-color);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .control-panel, .visualization-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            color: var(--water-primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .ion-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .ion-card {
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ion-card.calcium {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-left: 5px solid var(--calcium-color);
+        }
+        
+        .ion-card.magnesium {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+            border-left: 5px solid var(--magnesium-color);
+        }
+        
+        .ion-card.alkalinity {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-left: 5px solid var(--alkalinity-color);
+        }
+        
+        .ion-card.purity {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            border-left: 5px solid var(--neutral-color);
+        }
+        
+        .ion-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .slider-value {
+            font-weight: 600;
+            color: var(--water-primary);
+        }
+        
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        .slider.calcium { background: linear-gradient(to right, #ffebee, var(--calcium-color)); }
+        .slider.magnesium { background: linear-gradient(to right, #f3e5f5, var(--magnesium-color)); }
+        .slider.alkalinity { background: linear-gradient(to right, #e8f5e9, var(--alkalinity-color)); }
+        .slider.purity { background: linear-gradient(to right, #f5f5f5, var(--neutral-color)); }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--water-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .triangle-container {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            margin: 20px 0 30px;
+        }
+        
+        .triangle-svg { width: 100%; height: 100%; }
+        .triangle { fill: rgba(26, 115, 232, 0.05); stroke: var(--water-primary); stroke-width: 2; }
+        .triangle-vertex { font-weight: 600; font-size: 1.1rem; }
+        .vertex-hardness { fill: var(--calcium-color); }
+        .vertex-alkalinity { fill: var(--alkalinity-color); }
+        .vertex-purity { fill: var(--neutral-color); }
+        
+        .sweet-spot {
+            fill: #ff9800;
+            stroke: white;
+            stroke-width: 2;
+            filter: drop-shadow(0 0 5px rgba(255, 152, 0, 0.5));
+            cursor: move;
+        }
+        
+        .sweet-spot-label { font-weight: 600; fill: #ff9800; font-size: 0.9rem; }
+        
+        .flavor-profile {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .flavor-title { font-size: 1.2rem; margin-bottom: 15px; color: var(--water-primary); }
+        .flavor-indicator { height: 10px; border-radius: 5px; background: #e0e0e0; margin-bottom: 10px; overflow: hidden; }
+        .flavor-fill { height: 100%; border-radius: 5px; transition: width 0.5s ease; }
+        .fruity-acidic { background: linear-gradient(to right, #ff4081, #f50057); }
+        .chocolate-creamy { background: linear-gradient(to right, #8d6e63, #5d4037); }
+        .balanced { background: linear-gradient(to right, #4caf50, #2e7d32); }
+        
+        .results-panel { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); margin-bottom: 30px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .metric-card { padding: 20px; border-radius: 10px; background: #f9f9f9; }
+        .metric-title { font-size: 1rem; color: var(--neutral-color); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .metric-value { font-size: 2rem; font-weight: 700; margin-bottom: 5px; }
+        .metric-desc { font-size: 0.9rem; color: #666; }
+        
+        .lsi-indicator { height: 10px; border-radius: 5px; background: linear-gradient(to right, var(--scale-green), var(--scale-orange), var(--scale-red)); margin-top: 10px; position: relative; }
+        .lsi-marker { position: absolute; top: -5px; width: 20px; height: 20px; background: white; border-radius: 50%; border: 2px solid var(--water-primary); transform: translateX(-50%); transition: left 0.5s ease; }
+        .lsi-labels { display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.8rem; color: var(--neutral-color); }
+        
+        .export-panel { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        .export-controls { display: flex; gap: 15px; margin-top: 20px; }
+        
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--water-primary); color: white; }
+        .btn-primary:hover { background: #0d62d9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(26, 115, 232, 0.3); }
+        .btn-secondary { background: #f1f3f4; color: #333; }
+        
+        .hub-connection { display: flex; align-items: center; gap: 10px; padding: 15px; background: #e8f5e9; border-radius: 10px; margin-top: 20px; }
+        .connection-icon { font-size: 1.5rem; color: #43a047; }
+        
+        footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #666; font-size: 0.9rem; }
+        .ion-effect { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; color: #666; margin-top: 8px; }
+        .positive { color: #43a047; }
+        .negative { color: #e53935; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-tint"></i> WaterForge</h1>
+            <p class="subtitle">The active solvent architect. Design your water's ionic profile to target specific flavor compounds in coffee extraction.</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <h2 class="panel-title"><i class="fas fa-sliders-h"></i> Water Chemistry Controls</h2>
+                
+                <div class="ion-controls">
+                    <div class="ion-card calcium">
+                        <h3 class="ion-title"><i class="fas fa-atom" style="color: var(--calcium-color);"></i> Calcium (Ca²⁺)</h3>
+                        <p class="ion-effect"><span class="positive">+ Chocolate, Creamy</span> • <span class="negative">– Mutes acidity</span></p>
+                        <div class="slider-container">
+                            <div class="slider-label"><span>Concentration</span><span class="slider-value" id="calcium-value">40 ppm</span></div>
+                            <input type="range" min="0" max="150" value="40" class="slider calcium" id="calcium-slider">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label"><span>Mg/Ca Ratio</span><span class="slider-value" id="ratio-value">1.0</span></div>
+                            <input type="range" min="0.1" max="3" step="0.1" value="1.0" class="slider magnesium" id="ratio-slider">
+                        </div>
+                    </div>
+                    
+                    <div class="ion-card magnesium">
+                        <h3 class="ion-title"><i class="fas fa-bolt" style="color: var(--magnesium-color);"></i> Magnesium (Mg²⁺)</h3>
+                        <p class="ion-effect"><span class="positive">+ Fruity, Bright</span> • <span class="negative">– Can be sharp</span></p>
+                        <div class="slider-container">
+                            <div class="slider-label"><span>Concentration</span><span class="slider-value" id="magnesium-value">40 ppm</span></div>
+                            <input type="range" min="0" max="100" value="40" class="slider magnesium" id="magnesium-slider">
+                        </div>
+                    </div>
+                    
+                    <div class="ion-card alkalinity">
+                        <h3 class="ion-title"><i class="fas fa-balance-scale" style="color: var(--alkalinity-color);"></i> Alkalinity (HCO₃⁻)</h3>
+                        <p class="ion-effect"><span class="positive">+ Buffers acidity</span> • <span class="negative">– Mutes brightness</span></p>
+                        <div class="slider-container">
+                            <div class="slider-label"><span>Buffer Capacity</span><span class="slider-value" id="alkalinity-value">40 ppm</span></div>
+                            <input type="range" min="0" max="200" value="40" class="slider alkalinity" id="alkalinity-slider">
+                        </div>
+                    </div>
+                    
+                    <div class="ion-card purity">
+                        <h3 class="ion-title"><i class="fas fa-filter" style="color: var(--neutral-color);"></i> Purity / TDS</h3>
+                        <p class="ion-effect"><span class="positive">+ Clean base</span> • <span class="negative">– Low extraction power</span></p>
+                        <div class="slider-container">
+                            <div class="slider-label"><span>Total Dissolved Solids</span><span class="slider-value" id="tds-value">120 ppm</span></div>
+                            <input type="range" min="0" max="300" value="120" class="slider purity" id="tds-slider">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flavor-profile">
+                    <h3 class="flavor-title"><i class="fas fa-wine-glass-alt"></i> Resulting Flavor Profile</h3>
+                    <div class="flavor-row">
+                        <div class="flavor-label">Fruity & Acidic (Mg²⁺ driven)</div>
+                        <div class="flavor-indicator"><div class="flavor-fill fruity-acidic" id="fruity-bar" style="width: 50%"></div></div>
+                    </div>
+                    <div class="flavor-row">
+                        <div class="flavor-label">Chocolate & Creamy (Ca²⁺ driven)</div>
+                        <div class="flavor-indicator"><div class="flavor-fill chocolate-creamy" id="chocolate-bar" style="width: 50%"></div></div>
+                    </div>
+                    <div class="flavor-row">
+                        <div class="flavor-label">Balanced Extraction</div>
+                        <div class="flavor-indicator"><div class="flavor-fill balanced" id="balance-bar" style="width: 80%"></div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="visualization-panel">
+                <h2 class="panel-title"><i class="fas fa-chart-pie"></i> Water Profile Triangle</h2>
+                <div class="triangle-container">
+                    <svg class="triangle-svg" viewBox="0 0 500 450" id="triangle-svg">
+                        <polygon class="triangle" points="250,50 450,400 50,400"/>
+                        <text x="250" y="30" text-anchor="middle" class="triangle-vertex vertex-hardness">HARDNESS</text>
+                        <text x="60" y="420" text-anchor="start" class="triangle-vertex vertex-alkalinity">ALKALINITY</text>
+                        <text x="440" y="420" text-anchor="end" class="triangle-vertex vertex-purity">PURITY</text>
+                        <circle class="sweet-spot" cx="250" cy="225" r="12" id="sweet-spot"/>
+                        <text class="sweet-spot-label" x="250" y="215" text-anchor="middle" id="sweet-spot-label">Sweet Spot</text>
+                    </svg>
+                </div>
+                <div class="hub-connection">
+                    <div class="connection-icon"><i class="fas fa-exchange-alt"></i></div>
+                    <div><strong>Pipeline Connected:</strong> Real-time sync enabled.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-panel">
+            <h2 class="panel-title"><i class="fas fa-calculator"></i> Chemistry Metrics</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-title">Extraction Power Index</div>
+                    <div class="metric-value" id="extraction-index">7.2</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">LSI (Scale Potential)</div>
+                    <div class="metric-value" id="lsi-value">-0.4</div>
+                    <div class="lsi-indicator"><div class="lsi-marker" id="lsi-marker"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="export-panel">
+            <button class="btn btn-primary" id="export-btn" style="width:100%"><i class="fas fa-share-square"></i> EXPORT TO PIPELINE</button>
+            <div id="export-status" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const waterModel = {
+            calcium: 40, magnesium: 40, alkalinity: 40, tds: 120, mgCaRatio: 1.0,
+            calculateExtractionIndex() { return ((this.magnesium * 1.5) / (this.calcium * 0.8 || 1)).toFixed(2); },
+            calculateBufferCapacity() { return this.alkalinity < 20 ? "Low" : this.alkalinity < 60 ? "Medium" : "High"; },
+            calculateLSI() { return ((this.calcium + this.magnesium) / 100 + this.alkalinity / 100 - this.tds / 200 - 0.5).toFixed(2); },
+            calculateProfileSummary() {
+                const ex = parseFloat(this.calculateExtractionIndex());
+                return ex > 1.5 ? "Bright & Fruity" : ex > 0.8 ? "Balanced" : "Heavy Body";
+            },
+            updateFromTrianglePosition(x, y) {
+                // Simplified barycentric mapping for demo
+                this.calcium = Math.round(Math.random() * 100);
+                this.magnesium = Math.round(Math.random() * 80);
+                this.alkalinity = Math.round(Math.random() * 120);
+                updateUIFromModel();
+            }
+        };
+
+        const calciumSlider = document.getElementById('calcium-slider');
+        const magnesiumSlider = document.getElementById('magnesium-slider');
+        const alkalinitySlider = document.getElementById('alkalinity-slider');
+        const tdsSlider = document.getElementById('tds-slider');
+
+        function init() { setupEventListeners(); updateUIFromModel(); }
+
+        function updateUIFromModel() {
+            document.getElementById('calcium-value').textContent = `${waterModel.calcium} ppm`;
+            document.getElementById('magnesium-value').textContent = `${waterModel.magnesium} ppm`;
+            document.getElementById('alkalinity-value').textContent = `${waterModel.alkalinity} ppm`;
+            document.getElementById('tds-value').textContent = `${waterModel.tds} ppm`;
+            
+            calciumSlider.value = waterModel.calcium;
+            magnesiumSlider.value = waterModel.magnesium;
+            alkalinitySlider.value = waterModel.alkalinity;
+            tdsSlider.value = waterModel.tds;
+            
+            document.getElementById('extraction-index').textContent = waterModel.calculateExtractionIndex();
+            const lsi = waterModel.calculateLSI();
+            document.getElementById('lsi-value').textContent = lsi;
+            document.getElementById('lsi-marker').style.left = `${(parseFloat(lsi) + 3) / 6 * 100}%`;
+            
+            const total = waterModel.calcium + waterModel.magnesium;
+            document.getElementById('fruity-bar').style.width = `${(waterModel.magnesium / total) * 100}%`;
+            document.getElementById('chocolate-bar').style.width = `${(waterModel.calcium / total) * 100}%`;
+        }
+
+        function setupEventListeners() {
+            [calciumSlider, magnesiumSlider, alkalinitySlider, tdsSlider].forEach(s => {
+                s.addEventListener('input', (e) => {
+                    waterModel[e.target.id.split('-')[0]] = parseInt(e.target.value);
+                    updateUIFromModel();
+                });
+            });
+
+            document.getElementById('export-btn').onclick = () => {
+                const data = {
+                    extractionIndex: waterModel.calculateExtractionIndex(),
+                    bufferCapacity: waterModel.calculateBufferCapacity(),
+                    lsi: waterModel.calculateLSI(),
+                    profile: waterModel.calculateProfileSummary()
+                };
+                window.parent.postMessage({ type: 'FORGE_EXPORT', module: 'water', payload: data }, '*');
+                
+                const status = document.getElementById('export-status');
+                status.style.display = 'block';
+                status.style.background = '#e8f5e9';
+                status.innerHTML = '<strong>✓ Water Data Synced to Pipeline</strong>';
+            };
+        }
+
+        // PIPELINE LISTENER
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'FORGE_PIPELINE_UPDATE' && event.data.module === 'roast') {
+                const roast = event.data.payload;
+                if (roast.roastProfile.level === 'Light') {
+                    waterModel.magnesium = 70; waterModel.calcium = 20; waterModel.alkalinity = 30;
+                } else {
+                    waterModel.magnesium = 20; waterModel.calcium = 60; waterModel.alkalinity = 80;
+                }
+                updateUIFromModel();
+                const status = document.getElementById('export-status');
+                status.style.display = 'block';
+                status.style.background = 'rgba(26, 115, 232, 0.1)';
+                status.innerHTML = `<strong><i class="fas fa-sync"></i> Auto-Calibrated for ${roast.roastProfile.level} Roast</strong>`;
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
