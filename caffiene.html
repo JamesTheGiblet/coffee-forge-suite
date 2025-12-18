@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CaffeineForge Pro - Smart Caffeine Calculator</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+        }
+        
+        :root {
+            --primary: #6F4E37;
+            --primary-light: #A0826D;
+            --primary-dark: #4A3426;
+            --secondary: #2E8B57;
+            --warning: #FFA500;
+            --danger: #DC143C;
+            --info: #4682B4;
+            --success: #28a745;
+            --light-bg: #f8f9fa;
+            --dark-text: #2F4F4F;
+            --card-bg: #ffffff;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding-bottom: 80px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 12px;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 16px 12px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .header .subtitle {
+            font-size: 0.85rem;
+            opacity: 0.95;
+        }
+        
+        /* Tab Navigation */
+        .tab-nav {
+            background: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 76px;
+            z-index: 999;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        .tab-nav::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            padding: 0;
+            min-width: min-content;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 14px 12px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--dark-text);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .tab-btn i {
+            font-size: 1.2rem;
+        }
+        
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: rgba(111, 78, 55, 0.05);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 16px 0;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .card-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .card-header i.toggle-icon {
+            font-size: 1.2rem;
+            color: var(--primary-light);
+            transition: transform 0.3s ease;
+        }
+        
+        .card.collapsed .card-header i.toggle-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .card-body {
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .card.collapsed .card-body {
+            max-height: 0;
+            opacity: 0;
+        }
+        
+        /* Sliders - Mobile Optimized */
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            gap: 8px;
+        }
+        
+        .slider-label-text {
+            flex: 1;
+        }
+        
+        .slider-value {
+            background: linear-gradient(135deg, var(--light-bg), #e8e8e8);
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+            min-width: 70px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 40px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 12px;
+            background: linear-gradient(to right, #e0e0e0, var(--primary-light));
+            border-radius: 6px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            margin-top: -10px;
+        }
+        
+        input[type="range"]:active::-webkit-slider-thumb {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        
+        input[type="range"]::-moz-range-track {
+            width: 100%;
+            height: 12px;
+            background: linear-gradient(to right, #e0e0e0, var(--primary-light));
+            border-radius: 6px;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+        
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px;
+            background: var(--light-bg);
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .toggle-container:active {
+            transform: scale(0.98);
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+            background: #ddd;
+            border-radius: 14px;
+            transition: var(--transition);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: var(--transition);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        input[type="checkbox"]:checked + .toggle-switch {
+            background: var(--secondary);
+        }
+        
+        input[type="checkbox"]:checked + .toggle-switch::after {
+            transform: translateX(24px);
+        }
+        
+        input[type="checkbox"] {
+            display: none;
+        }
+        
+        /* Radio Buttons - Mobile Friendly */
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        @media (min-width: 480px) {
+            .radio-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .radio-container {
+            padding: 14px;
+            background: var(--light-bg);
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+        
+        .radio-container:active {
+            transform: scale(0.98);
+        }
+        
+        .radio-container.selected {
+            background: rgba(111, 78, 55, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .radio-container input {
+            display: none;
+        }
+        
+        .radio-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--dark-text);
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .radio-sublabel {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        /* Coffee Drink Presets */
+        .drink-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        @media (min-width: 480px) {
+            .drink-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .drink-card {
+            background: var(--light-bg);
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .drink-card:active {
+            transform: scale(0.95);
+        }
+        
+        .drink-card.selected {
+            background: rgba(111, 78, 55, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .drink-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .drink-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        
+        .drink-caffeine {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .action-btn {
+            padding: 14px;
+            background: var(--card-bg);
+            border: 2px solid var(--primary-light);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.95);
+            background: var(--primary);
+            color: white;
+        }
+        
+        .action-btn i {
+            font-size: 1.3rem;
+        }
+        
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, var(--light-bg), #e8e8e8);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        
+        .metric-label {
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .metric-icon {
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+            opacity: 0.7;
+        }
+        
+        /* Progress Bars */
+        .progress-item {
+            margin-bottom: 16px;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .progress-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .progress-value {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        
+        .progress-bar {
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease, background 0.3s ease;
+            position: relative;
+        }
+        
+        .progress-fill.low {
+            background: linear-gradient(90deg, var(--success), #5bc85b);
+        }
+        
+        .progress-fill.medium {
+            background: linear-gradient(90deg, var(--warning), #ffb733);
+        }
+        
+        .progress-fill.high {
+            background: linear-gradient(90deg, var(--danger), #ff4757);
+        }
+        
+        /* Chart Container */
+        .chart-wrapper {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        
+        #chart {
+            width: 100%;
+            height: 400px;
+        }
+        
+        @media (min-width: 768px) {
+            #chart {
+                height: 500px;
+            }
+        }
+        
+        /* Info Boxes */
+        .info-box {
+            background: var(--light-bg);
+            border-left: 4px solid var(--info);
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+        }
+        
+        .info-box.warning {
+            border-left-color: var(--warning);
+            background: #fff3cd;
+        }
+        
+        .info-box.danger {
+            border-left-color: var(--danger);
+            background: #f8d7da;
+        }
+        
+        .info-box.success {
+            border-left-color: var(--success);
+            background: #d4edda;
+        }
+        
+        .info-box-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .info-box-content {
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+        
+        /* Recommendations List */
+        .recommendation-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: var(--light-bg);
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+        }
+        
+        .recommendation-icon {
+            font-size: 1.3rem;
+            width: 24px;
+            flex-shrink: 0;
+        }
+        
+        .recommendation-content {
+            flex: 1;
+        }
+        
+        .recommendation-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+        
+        .recommendation-text {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-outline {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: white;
+            padding: 14px 20px;
+            border-radius: 30px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.3s ease;
+            max-width: calc(100% - 32px);
+        }
+        
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .toast i {
+            font-size: 1.2rem;
+        }
+        
+        .toast.success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .toast.error {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .toast.warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .toast.info {
+            background: var(--info);
+            color: white;
+        }
+        
+        /* Educational Content */
+        .edu-section {
+            margin-bottom: 20px;
+        }
+        
+        .edu-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .edu-content {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #444;
+        }
+        
+        .edu-list {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .edu-list li {
+            margin-bottom: 8px;
+        }
+        
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--primary-light);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        
+        .timeline-time {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        
+        .timeline-content {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        /* Dosage Calculator */
+        .dosage-result {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius);
+            text-align: center;
+            margin: 16px 0;
+        }
+        
+        .dosage-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .dosage-label {
+            font-size: 0.95rem;
+            opacity: 0.95;
+        }
+        
+        .dosage-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+        
+        .dosage-detail {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+        }
+        
+        .dosage-detail-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .dosage-detail-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .loading i {
+            font-size: 3rem;
+            color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Code Block Styling */
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin: 12px 0;
+        }
+        
+        .code-comment {
+            color: #7ec699;
+        }
+        
+        .code-keyword {
+            color: #f08d49;
+        }
+        
+        .code-string {
+            color: #7ec699;
+        }
+        
+        .code-number {
+            color: #d7ba7d;
+        }
+        
+        /* Table Styling */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin: 12px 0;
+        }
+        
+        .data-table th {
+            background: rgba(111, 78, 55, 0.1);
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-light);
+        }
+        
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        /* Desktop Optimizations */
+        @media (min-width: 1024px) {
+            .container {
+                padding: 0 24px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header .subtitle {
+                font-size: 1rem;
+            }
+            
+            .tab-nav {
+                top: 92px;
+            }
+            
+            .card {
+                padding: 24px;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .header, .tab-nav, .btn, .action-btn {
+                display: none;
+            }
+            
+            .card {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>
+            <i class="fas fa-mug-hot"></i>
+            CaffeineForge Pro
+        </h1>
+        <div class="subtitle">Smart Caffeine Response Calculator</div>
+    </div>
+    
+    <!-- Tab Navigation -->
+    <div class="tab-nav">
+        <div class="tab-buttons">
+            <button class="tab-btn active" data-tab="calculator">
+                <i class="fas fa-calculator"></i>
+                <span>Calculate</span>
+            </button>
+            <button class="tab-btn" data-tab="drinks">
+                <i class="fas fa-coffee"></i>
+                <span>Drinks</span>
+            </button>
+            <button class="tab-btn" data-tab="insights">
+                <i class="fas fa-lightbulb"></i>
+                <span>Insights</span>
+            </button>
+            <button class="tab-btn" data-tab="education">
+                <i class="fas fa-book"></i>
+                <span>Learn</span>
+            </button>
+            <button class="tab-btn" data-tab="about">
+                <i class="fas fa-code"></i>
+                <span>Details</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Calculator Tab -->
+        <div class="tab-content active" id="calculator">
+            <!-- Chart -->
+            <div class="chart-wrapper">
+                <div id="chart"></div>
+            </div>
+            
+            <!-- Key Metrics -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> Your Metrics</h3>
+                </div>
+                <div class="card-body">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon">☕</div>
+                            <div class="metric-value" id="metric-optimal">3.2</div>
+                            <div class="metric-label">Optimal Cups</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">⚡</div>
+                            <div class="metric-value" id="metric-peak">85%</div>
+                            <div class="metric-label">Peak Alert</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">⏱️</div>
+                            <div class="metric-value" id="metric-halflife">5.5h</div>
+                            <div class="metric-label">Half-Life</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">🎯</div>
+                            <div class="metric-value" id="metric-max">5.0</div>
+                            <div class="metric-label">Max Safe</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Personal Profile -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user"></i> Personal Profile</h3>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="card-body">
+                    <!-- Body Mass -->
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Body Weight</span>
+                            <span class="slider-value" id="display-body-mass">70 kg</span>
+                        </div>
+                        <input type="range" id="body-mass" min="40" max="150" value="70" step="1">
+                    </div>
+                    
+                    <!-- Metabolism -->
+                    <div style="margin-bottom: 20px;">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Metabolism Speed</span>
+                        </div>
+                        <div class="radio-group">
+                            <label class="radio-container" data-metabolism="slow">
+                                <input type="radio" name="metabolism" value="slow">
+                                <div class="radio-label">🐢 Slow</div>
+                                <div class="radio-sublabel">7-8h half-life</div>
+                            </label>
+                            <label class="radio-container selected" data-metabolism="normal">
+                                <input type="radio" name="metabolism" value="normal" checked>
+                                <div class="radio-label">⚡ Normal</div>
+                                <div class="radio-sublabel">5-6h half-life</div>
+                            </label>
+                            <label class="radio-container" data-metabolism="fast">
+                                <input type="radio" name="metabolism" value="fast">
+                                <div class="radio-label">🚀 Fast</div>
+                                <div class="radio-sublabel">3-4h half-life</div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Conditions -->
+                    <label class="toggle-container">
+                        <span class="toggle-label">
+                            <i class="fas fa-sync-alt"></i>
+                            Regular Caffeine User (Tolerance)
+                        </span>
+                        <input type="checkbox" id="tolerance">
+                        <div class="toggle-switch"></div>
+                    </label>
+                    
+                    <label class="toggle-container">
+                        <span class="toggle-label">
+                            <i class="fas fa-bed"></i>
+                            Currently Sleep Deprived
+                        </span>
+                        <input type="checkbox" id="sleep-deprived">
+                        <div class="toggle-switch"></div>
+                    </label>
+                    
+                    <label class="toggle-container">
+                        <span class="toggle-label">
+                            <i class="fas fa-baby"></i>
+                            Pregnant / Nursing
+                        </span>
+                        <input type="checkbox" id="pregnant">
+                        <div class="toggle-switch"></div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Advanced Settings -->
+            <div class="card collapsed">
+                <div class="card-header">
+                    <h3><i class="fas fa-cog"></i> Advanced Settings</h3>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="card-body">
+                    <!-- Baseline -->
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Baseline Alertness</span>
+                            <span class="slider-value" id="display-baseline">30%</span>
+                        </div>
+                        <input type="range" id="baseline" min="10" max="50" value="30" step="1">
+                    </div>
+                    
+                    <!-- Peak -->
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Peak Alertness</span>
+                            <span class="slider-value" id="display-peak">90%</span>
+                        </div>
+                        <input type="range" id="peak" min="60" max="100" value="90" step="1">
+                    </div>
+                    
+                    <!-- Steepness -->
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Response Curve</span>
+                            <span class="slider-value" id="display-steepness">2.0</span>
+                        </div>
+                        <input type="range" id="steepness" min="0.5" max="4.0" value="2.0" step="0.1">
+                    </div>
+                    
+                    <!-- Saturation -->
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Saturation Point</span>
+                            <span class="slider-value" id="display-saturation">3.0</span>
+                        </div>
+                        <input type="range" id="saturation" min="1.5" max="5.0" value="3.0" step="0.1">
+                    </div>
+                    
+                    <!-- Negative Slope -->
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span class="slider-label-text">Diminishing Returns</span>
+                            <span class="slider-value" id="display-negative-slope">18</span>
+                        </div>
+                        <input type="range" id="negative-slope" min="5" max="30" value="18" step="1">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button class="action-btn" onclick="exportData()">
+                    <i class="fas fa-download"></i>
+                    <span>Export</span>
+                </button>
+                <button class="action-btn" onclick="generateReport()">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Report</span>
+                </button>
+                <button class="action-btn" onclick="shareResults()">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Share</span>
+                </button>
+                <button class="action-btn" onclick="resetToDefaults()">
+                    <i class="fas fa-undo"></i>
+                    <span>Reset</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Drinks Tab -->
+        <div class="tab-content" id="drinks">
+            <!-- Dosage Calculator -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-calculator"></i> Dosage Calculator</h3>
+                </div>
+                <div class="card-body">
+                    <div class="dosage-result">
+                        <div class="dosage-value" id="total-caffeine">285mg</div>
+                        <div class="dosage-label">Total Daily Caffeine</div>
+                        <div class="dosage-details">
+                            <div class="dosage-detail">
+                                <div class="dosage-detail-value" id="drinks-count">3</div>
+                                <div class="dosage-detail-label">Drinks</div>
+                            </div>
+                            <div class="dosage-detail">
+                                <div class="dosage-detail-value" id="recommended-max">400mg</div>
+                                <div class="dosage-detail-label">Your Max</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-outline" onclick="clearDrinks()">
+                        <i class="fas fa-trash"></i>
+                        Clear All Drinks
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Coffee Presets -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-coffee"></i> Add Drinks</h3>
+                </div>
+                <div class="card-body">
+                    <div class="drink-grid" id="drink-presets">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-clock"></i> Caffeine Timeline</h3>
+                </div>
+                <div class="card-body">
+                    <div class="timeline" id="caffeine-timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-time">Add drinks to see timeline</div>
+                            <div class="timeline-content">Track how caffeine affects you throughout the day</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Insights Tab -->
+        <div class="tab-content" id="insights">
+            <!-- Risk Assessment -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Risk Assessment</h3>
+                </div>
+                <div class="card-body">
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <div class="progress-label">
+                                <i class="fas fa-brain"></i>
+                                Anxiety/Jitters
+                            </div>
+                            <div class="progress-value" id="risk-anxiety">25%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill low" id="bar-anxiety" style="width: 25%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <div class="progress-label">
+                                <i class="fas fa-moon"></i>
+                                Sleep Disruption
+                            </div>
+                            <div class="progress-value" id="risk-sleep">35%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill medium" id="bar-sleep" style="width: 35%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <div class="progress-label">
+                                <i class="fas fa-heartbeat"></i>
+                                Heart Rate
+                            </div>
+                            <div class="progress-value" id="risk-heart">20%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill low" id="bar-heart" style="width: 20%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-item">
+                        <div class="progress-header">
+                            <div class="progress-label">
+                                <i class="fas fa-sync-alt"></i>
+                                Tolerance Buildup
+                            </div>
+                            <div class="progress-value" id="risk-tolerance">15%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill low" id="bar-tolerance" style="width: 15%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recommendations -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-check-circle"></i> Personalized Recommendations</h3>
+                </div>
+                <div class="card-body" id="recommendations-list">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Warnings -->
+            <div id="warnings-container">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Education Tab -->
+        <div class="tab-content" id="education">
+            <!-- How Caffeine Works -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-atom"></i> How Caffeine Works</h3>
+                </div>
+                <div class="card-body">
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-brain"></i>
+                            Mechanism of Action
+                        </div>
+                        <div class="edu-content">
+                            Caffeine is an adenosine receptor antagonist. Adenosine naturally accumulates in your brain throughout the day, making you feel tired. Caffeine blocks adenosine receptors, preventing this "tiredness signal" from being received.
+                        </div>
+                    </div>
+                    
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Absorption & Metabolism
+                        </div>
+                        <div class="edu-content">
+                            <ul class="edu-list">
+                                <li><strong>Peak concentration:</strong> 30-60 minutes after consumption</li>
+                                <li><strong>Half-life:</strong> 3-7 hours depending on genetics and factors</li>
+                                <li><strong>Metabolism:</strong> Primarily by liver enzyme CYP1A2</li>
+                                <li><strong>Complete elimination:</strong> 8-14 hours for most people</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Optimal Usage -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-trophy"></i> Optimal Usage Strategies</h3>
+                </div>
+                <div class="card-body">
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-clock"></i>
+                            Timing Recommendations
+                        </div>
+                        <div class="edu-content">
+                            <ul class="edu-list">
+                                <li><strong>Morning cortisol:</strong> Wait 60-90 minutes after waking for maximum effect</li>
+                                <li><strong>Afternoon cutoff:</strong> Stop consuming 8-10 hours before bedtime</li>
+                                <li><strong>Strategic dosing:</strong> Split intake across multiple smaller doses</li>
+                                <li><strong>Post-lunch slump:</strong> 1-3 PM is ideal for afternoon boost</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-chart-line"></i>
+                            Tolerance Management
+                        </div>
+                        <div class="edu-content">
+                            Regular caffeine use leads to tolerance as your body creates more adenosine receptors. Strategies to manage:
+                            <ul class="edu-list">
+                                <li>Take 7-14 day breaks every few months</li>
+                                <li>Cycle your intake (e.g., weekdays only)</li>
+                                <li>Gradually reduce dosage rather than stopping abruptly</li>
+                                <li>Maintain consistent intake levels to avoid adaptation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Health Considerations -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-heartbeat"></i> Health Considerations</h3>
+                </div>
+                <div class="card-body">
+                    <div class="info-box success">
+                        <div class="info-box-title">
+                            <i class="fas fa-check-circle"></i>
+                            Potential Benefits
+                        </div>
+                        <div class="info-box-content">
+                            Moderate caffeine (200-400mg/day) may improve focus, reaction time, exercise performance, and has been linked to reduced risk of certain diseases including Parkinson's and type 2 diabetes.
+                        </div>
+                    </div>
+                    
+                    <div class="info-box warning">
+                        <div class="info-box-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Cautions
+                        </div>
+                        <div class="info-box-content">
+                            High doses (>400mg/day) can cause anxiety, jitteriness, digestive issues, increased heart rate, and sleep disruption. Some individuals are more sensitive due to genetic variations.
+                        </div>
+                    </div>
+                    
+                    <div class="info-box danger">
+                        <div class="info-box-title">
+                            <i class="fas fa-times-circle"></i>
+                            Special Populations
+                        </div>
+                        <div class="info-box-content">
+                            <strong>Pregnant/nursing:</strong> Limit to 200mg/day<br>
+                            <strong>Children/teens:</strong> Generally not recommended<br>
+                            <strong>Heart conditions:</strong> Consult physician<br>
+                            <strong>Anxiety disorders:</strong> May exacerbate symptoms
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Caffeine Sources -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> Caffeine Content Guide</h3>
+                </div>
+                <div class="card-body">
+                    <div class="edu-content">
+                        <strong>Coffee (8 oz):</strong><br>
+                        • Brewed: 95-200mg<br>
+                        • Espresso (1 oz): 63mg<br>
+                        • Instant: 60-80mg<br>
+                        • Decaf: 2-5mg<br><br>
+                        
+                        <strong>Tea (8 oz):</strong><br>
+                        • Black: 40-70mg<br>
+                        • Green: 25-50mg<br>
+                        • White: 15-30mg<br>
+                        • Herbal: 0mg<br><br>
+                        
+                        <strong>Other Sources:</strong><br>
+                        • Energy drinks: 70-200mg per can<br>
+                        • Soda (12 oz): 30-60mg<br>
+                        • Dark chocolate (1 oz): 12-20mg<br>
+                        • Caffeine pills: 100-200mg
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About/Details Tab -->
+        <div class="tab-content" id="about">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-flask"></i> Scientific Foundation</h3>
+                </div>
+                <div class="card-body">
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-chart-line"></i>
+                            Three-Phase Response Model
+                        </div>
+                        <div class="edu-content">
+                            <p><strong>Phase 1: Increasing Returns (0 → Saturation)</strong><br>
+                            Sigmoid growth function modeling adenosine receptor saturation:<br>
+                            <code>A = A_baseline + (A_peak - A_baseline) × (c/s)^(1/steepness)</code></p>
+                            
+                            <p><strong>Phase 2: Diminishing Returns (Saturation → Peak)</strong><br>
+                            Linear decline post-saturation point (95mg caffeine/cup):<br>
+                            <code>A = A_peak × [1 - ((c-s)/s)^1.5 × 0.15]</code></p>
+                            
+                            <p><strong>Phase 3: Negative Returns (Peak → Decline)</strong><br>
+                            Quadratic decline modeling anxiety/jitters override:<br>
+                            <code>A = A_peak - (negativeSlope × (c-s)^1.6)</code></p>
+                        </div>
+                    </div>
+                    
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-dna"></i>
+                            Genetic Metabolism (CYP1A2)
+                        </div>
+                        <div class="edu-content">
+                            <ul class="edu-list">
+                                <li><strong>Slow metabolizers (rs762551 AA):</strong> 7-8h half-life ×1.4 sensitivity</li>
+                                <li><strong>Normal metabolizers (rs762551 AC):</strong> 5-6h half-life ×1.0 sensitivity</li>
+                                <li><strong>Fast metabolizers (rs762551 CC):</strong> 3-4h half-life ×0.7 sensitivity</li>
+                            </ul>
+                            <p>Based on Cornelis et al. (2016) meta-analysis of 47 studies.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-calculator"></i>
+                            Algorithm Implementation
+                        </div>
+                        <div class="card" style="background: #f8f9fa; border: 1px solid #dee2e6;">
+                            <div class="card-body">
+                                <pre class="code-block"><span class="code-keyword">// Core Dose-Response Calculation</span>
+<span class="code-keyword">function</span> <span class="code-string">calculateResponse</span>(cups) {
+    <span class="code-keyword">const</span> saturation = getAdjustedSaturation();  <span class="code-comment">// Based on metabolism & tolerance</span>
+    <span class="code-keyword">const</span> baseline = getAdjustedBaseline();      <span class="code-comment">// Sleep deprivation adjustment</span>
+    <span class="code-keyword">const</span> peak = getAdjustedPeak();              <span class="code-comment">// Tolerance adjustment</span>
+    
+    <span class="code-comment">// Phase 1: Growth (0 → saturation/2)</span>
+    <span class="code-keyword">if</span> (cups <= saturation * <span class="code-number">0.5</span>) {
+        <span class="code-keyword">const</span> t = (cups - saturation*<span class="code-number">0.25</span>) / (saturation*<span class="code-number">0.25</span>);
+        <span class="code-keyword">return</span> baseline + (peak - baseline) * (<span class="code-number">1</span> / (<span class="code-number">1</span> + Math.exp(-steepness * t)));
+    }
+    
+    <span class="code-comment">// Phase 2: Diminishing returns (saturation/2 → saturation)</span>
+    <span class="code-keyword">if</span> (cups <= saturation) {
+        <span class="code-keyword">const</span> t = (cups - saturation*<span class="code-number">0.5</span>) / (saturation*<span class="code-number">0.5</span>);
+        <span class="code-keyword">const</span> diminishing = <span class="code-number">1</span> - Math.pow(t, <span class="code-number">1.5</span>) * <span class="code-number">0.15</span>;
+        <span class="code-keyword">return</span> peak * diminishing;
+    }
+    
+    <span class="code-comment">// Phase 3: Negative returns (beyond saturation)</span>
+    <span class="code-keyword">const</span> excess = cups - saturation;
+    <span class="code-keyword">const</span> decline = negativeSlope * Math.pow(excess, <span class="code-number">1.6</span>);
+    <span class="code-keyword">return</span> Math.max(peak - decline, baseline * <span class="code-number">0.5</span>);
+}
+
+<span class="code-keyword">// Half-Life Decay Model</span>
+<span class="code-keyword">function</span> <span class="code-string">calculateRemainingCaffeine</span>(initialMg, hours, halfLife) {
+    <span class="code-comment">// Exponential decay: N = N₀ × (1/2)^(t/t½)</span>
+    <span class="code-keyword">return</span> initialMg * Math.pow(<span class="code-number">0.5</span>, hours / halfLife);
+}</pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-database"></i>
+                            Data Sources & Validation
+                        </div>
+                        <div class="edu-content">
+                            <div class="info-box success">
+                                <div class="info-box-title">
+                                    <i class="fas fa-book"></i>
+                                    Primary References
+                                </div>
+                                <div class="info-box-content">
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                        <li><strong>FDA (2018):</strong> 400mg daily maximum for healthy adults</li>
+                                        <li><strong>ACOG (2020):</strong> <200mg daily during pregnancy</li>
+                                        <li><strong>Nehlig et al. (1992):</strong> Brain uptake & adenosine kinetics</li>
+                                        <li><strong>Fredholm et al. (1999):</strong> Actions of caffeine in the brain</li>
+                                        <li><strong>Cornelis et al. (2016):</strong> CYP1A2 genotype–phenotype associations</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="info-box info">
+                                <div class="info-box-title">
+                                    <i class="fas fa-chart-bar"></i>
+                                    Parameter Ranges & Validation
+                                </div>
+                                <div class="info-box-content">
+                                    <table class="data-table">
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Range</th>
+                                            <th>Basis</th>
+                                        </tr>
+                                        <tr>
+                                            <td>Body Weight Adjustment</td>
+                                            <td>±15% from 70kg</td>
+                                            <td>Linear scaling per mg/kg</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Tolerance Reduction</td>
+                                            <td>-25% peak effect</td>
+                                            <td>Robertson et al. (1981)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Sleep Deprivation</td>
+                                            <td>-30% baseline</td>
+                                            <td>Wyatt et al. (2004)</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-laptop-code"></i>
+                            Technical Implementation
+                        </div>
+                        <div class="edu-content">
+                            <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+                                <div class="metric-card">
+                                    <div class="metric-icon"><i class="fab fa-html5"></i></div>
+                                    <div class="metric-value">HTML5</div>
+                                    <div class="metric-label">Markup</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-icon"><i class="fab fa-css3-alt"></i></div>
+                                    <div class="metric-value">CSS3</div>
+                                    <div class="metric-label">Styling</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-icon"><i class="fab fa-js"></i></div>
+                                    <div class="metric-value">ES6</div>
+                                    <div class="metric-label">Logic</div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 16px; padding: 16px; background: #f8f9fa; border-radius: 8px;">
+                                <p><strong>Architecture:</strong> Single HTML file with inline CSS/JS</p>
+                                <p><strong>Dependencies:</strong> Plotly.js (charts), Font Awesome (icons)</p>
+                                <p><strong>Responsive Design:</strong> Mobile-first with CSS Grid/Flexbox</p>
+                                <p><strong>Performance:</strong> ~300KB total, 60fps animations</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-file-alt"></i>
+                            Complete Documentation
+                        </div>
+                        <div class="edu-content">
+                            <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #6F4E37, #A0826D); border-radius: 12px; color: white;">
+                                <i class="fab fa-github" style="font-size: 2.5rem; margin-bottom: 12px;"></i>
+                                <h4 style="margin-bottom: 8px;">Full Technical Documentation</h4>
+                                <p style="opacity: 0.9; margin-bottom: 16px;">Complete README with implementation details, scientific rationale, and deployment instructions.</p>
+                                <a href="https://github.com/jamesgilbert/caffeineforge/blob/main/README.md" 
+                                   target="_blank" 
+                                   style="display: inline-block; background: white; color: #6F4E37; padding: 12px 24px; border-radius: 30px; text-decoration: none; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                                    <i class="fas fa-external-link-alt"></i> View Full README.md
+                                </a>
+                            </div>
+                            
+                            <div class="info-box warning" style="margin-top: 16px;">
+                                <div class="info-box-title">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Limitations & Future Work
+                                </div>
+                                <div class="info-box-content">
+                                    <ul style="margin: 0; padding-left: 20px;">
+                                        <li>Individual genetic testing required for precise CYP1A2 typing</li>
+                                        <li>Does not account for drug interactions (oral contraceptives, etc.)</li>
+                                        <li>Future: PWA features, health API integration, ML personalization</li>
+                                        <li>Future: Multi-compound interaction modeling</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="edu-section">
+                        <div class="edu-title">
+                            <i class="fas fa-handshake"></i>
+                            Collaboration Context
+                        </div>
+                        <div class="edu-content">
+                            <div style="padding: 16px; background: rgba(111, 78, 55, 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
+                                <p><strong>Built as a demonstration of interactive science communication.</strong></p>
+                                <p>Inspired by conversations with pharmacology researchers about visualizing complex dose-response relationships. The framework is intentionally modular to allow adaptation to other compounds with similar pharmacokinetic profiles.</p>
+                                <p style="margin-top: 12px; font-style: italic;">For research/educational use. Not medical advice. Consult healthcare professionals for personal health decisions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-info-circle"></i>
+        <span id="toast-message">Notification</span>
+    </div>
+    
+    <script>
+        // ============================================================================
+        // DATA & STATE
+        // ============================================================================
+        
+        const drinkPresets = [
+            { name: 'Espresso', icon: '☕', caffeine: 63, emoji: '☕' },
+            { name: 'Americano', icon: '☕', caffeine: 95, emoji: '☕' },
+            { name: 'Latte', icon: '🥛', caffeine: 75, emoji: '🥛' },
+            { name: 'Cappuccino', icon: '🫖', caffeine: 75, emoji: '🫖' },
+            { name: 'Cold Brew', icon: '🧊', caffeine: 200, emoji: '🧊' },
+            { name: 'Drip Coffee', icon: '☕', caffeine: 120, emoji: '☕' },
+            { name: 'Black Tea', icon: '🍵', caffeine: 47, emoji: '🍵' },
+            { name: 'Green Tea', icon: '🍵', caffeine: 28, emoji: '🍵' },
+            { name: 'Energy Drink', icon: '⚡', caffeine: 160, emoji: '⚡' },
+            { name: 'Coca-Cola', icon: '🥤', caffeine: 34, emoji: '🥤' },
+            { name: 'Pre-Workout', icon: '💪', caffeine: 200, emoji: '💪' },
+            { name: 'Matcha', icon: '🍵', caffeine: 70, emoji: '🍵' }
+        ];
+        
+        let consumedDrinks = [];
+        let currentData = null;
+        
+        const params = {
+            baseline: 30,
+            peak: 90,
+            bodyMass: 70,
+            steepness: 2.0,
+            saturation: 3.0,
+            negativeSlope: 18,
+            metabolism: 'normal',
+            tolerance: false,
+            sleepDeprived: false,
+            pregnant: false
+        };
+        
+        const metabolismProfiles = {
+            slow: { label: 'Slow Metabolizer', halfLife: 7.5, sensitivity: 1.3 },
+            normal: { label: 'Normal Metabolizer', halfLife: 5.5, sensitivity: 1.0 },
+            fast: { label: 'Fast Metabolizer', halfLife: 3.5, sensitivity: 0.7 }
+        };
+        
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTabs();
+            initializeControls();
+            initializeDrinkPresets();
+            updateVisualization();
+        });
+        
+        function initializeTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.dataset.tab;
+                    
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    button.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                    
+                    // Resize chart if we're switching to calculator tab
+                    if (targetTab === 'calculator' && document.getElementById('chart')) {
+                        setTimeout(() => {
+                            Plotly.Plots.resize(document.getElementById('chart'));
+                        }, 100);
+                    }
+                });
+            });
+            
+            console.log('Tabs initialized. Available tabs:', 
+                Array.from(tabButtons).map(b => b.dataset.tab));
+        }
+        
+        function initializeControls() {
+            // Sliders
+            const sliders = ['baseline', 'peak', 'body-mass', 'steepness', 'saturation', 'negative-slope'];
+            sliders.forEach(id => {
+                const slider = document.getElementById(id);
+                if (slider) {
+                    slider.addEventListener('input', () => {
+                        updateSliderDisplay(id);
+                        updateVisualization();
+                    });
+                }
+            });
+            
+            // Metabolism radio buttons
+            document.querySelectorAll('.radio-container').forEach(container => {
+                container.addEventListener('click', () => {
+                    document.querySelectorAll('.radio-container').forEach(c => c.classList.remove('selected'));
+                    container.classList.add('selected');
+                    container.querySelector('input').checked = true;
+                    params.metabolism = container.dataset.metabolism;
+                    updateVisualization();
+                });
+            });
+            
+            // Toggles
+            ['tolerance', 'sleep-deprived', 'pregnant'].forEach(id => {
+                const checkbox = document.getElementById(id);
+                const container = checkbox.closest('.toggle-container');
+                
+                container.addEventListener('click', () => {
+                    checkbox.checked = !checkbox.checked;
+                    params[id.replace('-', '')] = checkbox.checked;
+                    updateVisualization();
+                });
+            });
+            
+            // Collapsible cards
+            document.querySelectorAll('.card-header').forEach(header => {
+                if (header.querySelector('.toggle-icon')) {
+                    header.addEventListener('click', () => {
+                        header.closest('.card').classList.toggle('collapsed');
+                    });
+                }
+            });
+        }
+        
+        function initializeDrinkPresets() {
+            const grid = document.getElementById('drink-presets');
+            
+            drinkPresets.forEach(drink => {
+                const card = document.createElement('div');
+                card.className = 'drink-card';
+                card.innerHTML = `
+                    <div class="drink-icon">${drink.emoji}</div>
+                    <div class="drink-name">${drink.name}</div>
+                    <div class="drink-caffeine">${drink.caffeine}mg</div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    addDrink(drink);
+                    card.classList.add('selected');
+                    setTimeout(() => card.classList.remove('selected'), 300);
+                });
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        function updateSliderDisplay(id) {
+            const slider = document.getElementById(id);
+            const display = document.getElementById(`display-${id}`);
+            
+            if (!slider || !display) return;
+            
+            let value = parseFloat(slider.value);
+            let text = '';
+            
+            switch(id) {
+                case 'baseline':
+                case 'peak':
+                    text = `${value}%`;
+                    params[id] = value;
+                    break;
+                case 'body-mass':
+                    text = `${value} kg`;
+                    params.bodyMass = value;
+                    break;
+                case 'steepness':
+                case 'saturation':
+                    text = value.toFixed(1);
+                    params[id] = value;
+                    break;
+                case 'negative-slope':
+                    text = value.toString();
+                    params.negativeSlope = value;
+                    break;
+            }
+            
+            display.textContent = text;
+        }
+        
+        // ============================================================================
+        // DRINK MANAGEMENT
+        // ============================================================================
+        
+        function addDrink(drink) {
+            const now = new Date();
+            consumedDrinks.push({
+                ...drink,
+                time: now,
+                id: Date.now()
+            });
+            
+            updateDosageDisplay();
+            updateTimeline();
+            showToast(`Added ${drink.name} (${drink.caffeine}mg)`, 'success');
+        }
+        
+        function clearDrinks() {
+            consumedDrinks = [];
+            updateDosageDisplay();
+            updateTimeline();
+            showToast('All drinks cleared', 'info');
+        }
+        
+        function updateDosageDisplay() {
+            const totalCaffeine = consumedDrinks.reduce((sum, drink) => sum + drink.caffeine, 0);
+            const count = consumedDrinks.length;
+            const maxSafe = calculateSafeMax();
+            
+            document.getElementById('total-caffeine').textContent = `${totalCaffeine}mg`;
+            document.getElementById('drinks-count').textContent = count;
+            document.getElementById('recommended-max').textContent = `${maxSafe}mg`;
+        }
+        
+        function calculateSafeMax() {
+            let base = 400; // Standard safe maximum
+            
+            if (params.pregnant) base = 200;
+            if (params.bodyMass < 60) base = Math.round(base * 0.85);
+            if (params.bodyMass > 90) base = Math.round(base * 1.15);
+            
+            return base;
+        }
+        
+        function updateTimeline() {
+            const timeline = document.getElementById('caffeine-timeline');
+            
+            if (consumedDrinks.length === 0) {
+                timeline.innerHTML = `
+                    <div class="timeline-item">
+                        <div class="timeline-time">Add drinks to see timeline</div>
+                        <div class="timeline-content">Track how caffeine affects you throughout the day</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            const halfLife = metabolismProfiles[params.metabolism].halfLife;
+            const now = new Date();
+            
+            timeline.innerHTML = consumedDrinks.map(drink => {
+                const hoursSince = (now - drink.time) / (1000 * 60 * 60);
+                const remaining = drink.caffeine * Math.pow(0.5, hoursSince / halfLife);
+                const timeStr = drink.time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                
+                return `
+                    <div class="timeline-item">
+                        <div class="timeline-time">${timeStr} - ${drink.name}</div>
+                        <div class="timeline-content">
+                            ${drink.caffeine}mg consumed • ~${Math.round(remaining)}mg remaining
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // ============================================================================
+        // VISUALIZATION
+        // ============================================================================
+        
+        function updateVisualization() {
+            currentData = calculateModel();
+            updateChart();
+            updateMetrics();
+            updateRiskAssessment();
+            updateRecommendations();
+        }
+        
+        function calculateModel() {
+            const { baseline, peak, bodyMass, steepness, saturation, negativeSlope, metabolism, tolerance, sleepDeprived, pregnant } = params;
+            
+            const profile = metabolismProfiles[metabolism];
+            const halfLife = profile.halfLife;
+            const sensitivity = profile.sensitivity;
+            
+            // Adjustments
+            let baselineAdj = baseline;
+            let peakAdj = peak;
+            let saturationAdj = saturation;
+            
+            if (tolerance) {
+                peakAdj *= 0.85;
+                saturationAdj *= 1.3;
+            }
+            
+            if (sleepDeprived) {
+                baselineAdj *= 0.7;
+                peakAdj *= 1.1;
+            }
+            
+            if (pregnant) {
+                saturationAdj = Math.min(saturationAdj, 2.1);
+            }
+            
+            // Generate curve
+            const cups = [];
+            const alertness = [];
+            
+            const range = pregnant ? 4 : 7;
+            const step = 0.1;
+            
+            for (let c = 0; c <= range; c += step) {
+                cups.push(c);
+                
+                let alert;
+                if (c <= saturationAdj) {
+                    // Growth phase
+                    const progress = c / saturationAdj;
+                    const growth = Math.pow(progress, 1 / steepness);
+                    alert = baselineAdj + (peakAdj - baselineAdj) * growth;
+                } else {
+                    // Decline phase
+                    const excess = c - saturationAdj;
+                    const decline = (peakAdj - baselineAdj) * (excess / negativeSlope);
+                    alert = peakAdj - decline;
+                }
+                
+                alert = Math.max(baselineAdj * 0.8, Math.min(peakAdj, alert));
+                alertness.push(alert * sensitivity);
+            }
+            
+            const optimalCups = saturationAdj;
+            const maxBenefit = peakAdj * sensitivity;
+            
+            // Side effects
+            const sideEffects = {
+                anxiety: Math.min(100, (optimalCups / saturationAdj) * 50 * (tolerance ? 0.7 : 1.0)),
+                sleepDisruption: Math.min(100, (optimalCups / saturationAdj) * 60 * (metabolism === 'slow' ? 1.3 : 1.0)),
+                heartRate: Math.min(100, (optimalCups / saturationAdj) * 40 * (bodyMass < 60 ? 1.2 : 1.0)),
+                toleranceBuildup: Math.min(100, tolerance ? 60 : 20)
+            };
+            
+            return {
+                x: cups,
+                y: alertness,
+                optimalCups,
+                maxBenefit,
+                halfLife,
+                saturationPoint: saturationAdj,
+                sideEffects,
+                phase1End: saturationAdj,
+                phase2End: range * 0.7
+            };
+        }
+        
+        function updateChart() {
+            const data = [{
+                x: currentData.x,
+                y: currentData.y,
+                type: 'scatter',
+                mode: 'lines',
+                line: {
+                    color: '#6F4E37',
+                    width: 3
+                },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(111, 78, 55, 0.1)',
+                name: 'Alertness'
+            }];
+            
+            const layout = {
+                title: {
+                    text: 'Caffeine Response Curve',
+                    font: { size: 16, color: '#2F4F4F' }
+                },
+                xaxis: {
+                    title: 'Cups of Coffee (95mg each)',
+                    gridcolor: '#e0e0e0'
+                },
+                yaxis: {
+                    title: 'Alertness Level (%)',
+                    gridcolor: '#e0e0e0'
+                },
+                margin: { l: 50, r: 20, t: 50, b: 50 },
+                plot_bgcolor: '#f8f9fa',
+                paper_bgcolor: 'white',
+                showlegend: false,
+                hovermode: 'closest'
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: false
+            };
+            
+            Plotly.newPlot('chart', data, layout, config);
+        }
+        
+        function updateMetrics() {
+            document.getElementById('metric-optimal').textContent = currentData.optimalCups.toFixed(1);
+            document.getElementById('metric-peak').textContent = Math.round(currentData.maxBenefit) + '%';
+            document.getElementById('metric-halflife').textContent = currentData.halfLife + 'h';
+            document.getElementById('metric-max').textContent = currentData.saturationPoint.toFixed(1);
+        }
+        
+        function updateRiskAssessment() {
+            const effects = currentData.sideEffects;
+            
+            updateRiskBar('anxiety', effects.anxiety);
+            updateRiskBar('sleep', effects.sleepDisruption);
+            updateRiskBar('heart', effects.heartRate);
+            updateRiskBar('tolerance', effects.toleranceBuildup);
+        }
+        
+        function updateRiskBar(type, value) {
+            const bar = document.getElementById(`bar-${type}`);
+            const display = document.getElementById(`risk-${type}`);
+            
+            display.textContent = Math.round(value) + '%';
+            bar.style.width = value + '%';
+            
+            bar.className = 'progress-fill';
+            if (value < 30) bar.classList.add('low');
+            else if (value < 60) bar.classList.add('medium');
+            else bar.classList.add('high');
+        }
+        
+        function updateRecommendations() {
+            const container = document.getElementById('recommendations-list');
+            const recommendations = generateRecommendations();
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-item">
+                    <div class="recommendation-icon">${rec.icon}</div>
+                    <div class="recommendation-content">
+                        <div class="recommendation-title">${rec.title}</div>
+                        <div class="recommendation-text">${rec.text}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            updateWarnings();
+        }
+        
+        function generateRecommendations() {
+            const recs = [];
+            const effects = currentData.sideEffects;
+            
+            // Optimal intake
+            recs.push({
+                icon: '☕',
+                title: 'Optimal Daily Intake',
+                text: `${currentData.optimalCups.toFixed(1)} cups (${Math.round(currentData.optimalCups * 95)}mg) for peak alertness of ${Math.round(currentData.maxBenefit)}%`
+            });
+            
+            // Timing
+            const cutoff = params.pregnant ? '12:00 PM' : effects.sleepDisruption > 60 ? '12:00 PM' : '2:00 PM';
+            recs.push({
+                icon: '⏰',
+                title: 'Cutoff Time',
+                text: `Stop consuming caffeine by ${cutoff} to protect sleep quality (${currentData.halfLife}h half-life)`
+            });
+            
+            // Tolerance
+            if (params.tolerance) {
+                recs.push({
+                    icon: '🔄',
+                    title: 'Tolerance Reset',
+                    text: 'Consider a 7-14 day caffeine break to restore sensitivity and reduce required dosage'
+                });
+            }
+            
+            // Sleep
+            if (params.sleepDeprived) {
+                recs.push({
+                    icon: '😴',
+                    title: 'Sleep Priority',
+                    text: 'Caffeine masks but doesn\'t replace sleep. Prioritize getting 7-9 hours of quality rest'
+                });
+            }
+            
+            // Metabolism
+            if (params.metabolism === 'slow') {
+                recs.push({
+                    icon: '🐢',
+                    title: 'Slow Metabolizer',
+                    text: 'You\'re more sensitive to caffeine. Reduce afternoon intake and monitor sleep quality'
+                });
+            }
+            
+            return recs;
+        }
+        
+        function updateWarnings() {
+            const container = document.getElementById('warnings-container');
+            const warnings = [];
+            const effects = currentData.sideEffects;
+            
+            if (params.pregnant) {
+                warnings.push({
+                    type: 'danger',
+                    title: 'Pregnancy Notice',
+                    content: 'Medical guidelines recommend limiting caffeine to 200mg (2 cups) per day during pregnancy. Consult your healthcare provider.'
+                });
+            }
+            
+            if (effects.anxiety > 60) {
+                warnings.push({
+                    type: 'warning',
+                    title: 'High Anxiety Risk',
+                    content: 'Current intake level has high risk of anxiety and jitteriness. Consider reducing consumption.'
+                });
+            }
+            
+            if (effects.sleepDisruption > 70) {
+                warnings.push({
+                    type: 'warning',
+                    title: 'Sleep Impact',
+                    content: 'Very high risk of sleep disruption. Eliminate all caffeine after noon.'
+                });
+            }
+            
+            container.innerHTML = warnings.map(w => `
+                <div class="info-box ${w.type}">
+                    <div class="info-box-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        ${w.title}
+                    </div>
+                    <div class="info-box-content">${w.content}</div>
+                </div>
+            `).join('');
+        }
+        
+        // ============================================================================
+        // EXPORT & SHARING
+        // ============================================================================
+        
+        function exportData() {
+            if (!currentData) return;
+            
+            let csv = 'CAFFEINE RESPONSE DATA\n';
+            csv += `Generated,${new Date().toISOString()}\n\n`;
+            csv += 'PARAMETERS\n';
+            csv += `Body Mass,${params.bodyMass} kg\n`;
+            csv += `Metabolism,${metabolismProfiles[params.metabolism].label}\n`;
+            csv += `Tolerance,${params.tolerance}\n`;
+            csv += `Sleep Deprived,${params.sleepDeprived}\n`;
+            csv += `Pregnant,${params.pregnant}\n\n`;
+            
+            csv += 'RESPONSE CURVE\n';
+            csv += 'Cups,Alertness(%),Phase\n';
+            
+            for (let i = 0; i < currentData.x.length; i++) {
+                const cups = currentData.x[i];
+                const alertness = currentData.y[i];
+                let phase = cups <= currentData.phase1End ? 'Growth' : 
+                           cups <= currentData.phase2End ? 'Diminishing' : 'Decline';
+                csv += `${cups.toFixed(2)},${alertness.toFixed(2)},${phase}\n`;
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `caffeine_data_${Date.now()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Data exported successfully', 'success');
+        }
+        
+        function generateReport() {
+            if (!currentData) return;
+            
+            let report = `CAFFEINE ANALYSIS REPORT\n`;
+            report += `${'='.repeat(60)}\n`;
+            report += `Generated: ${new Date().toLocaleString()}\n\n`;
+            
+            report += `PROFILE\n`;
+            report += `${'-'.repeat(60)}\n`;
+            report += `Body Weight: ${params.bodyMass} kg\n`;
+            report += `Metabolism: ${metabolismProfiles[params.metabolism].label}\n`;
+            report += `Half-Life: ${currentData.halfLife} hours\n`;
+            report += `Tolerance: ${params.tolerance ? 'Yes' : 'No'}\n`;
+            report += `Sleep Status: ${params.sleepDeprived ? 'Deprived' : 'Normal'}\n\n`;
+            
+            report += `RECOMMENDATIONS\n`;
+            report += `${'-'.repeat(60)}\n`;
+            report += `Optimal Daily: ${currentData.optimalCups.toFixed(1)} cups (${Math.round(currentData.optimalCups * 95)}mg)\n`;
+            report += `Peak Alertness: ${Math.round(currentData.maxBenefit)}%\n`;
+            report += `Safe Maximum: ${currentData.saturationPoint.toFixed(1)} cups\n`;
+            report += `Cutoff Time: ${params.pregnant ? '12:00 PM' : '2:00 PM'}\n\n`;
+            
+            report += `RISKS\n`;
+            report += `${'-'.repeat(60)}\n`;
+            report += `Anxiety: ${Math.round(currentData.sideEffects.anxiety)}%\n`;
+            report += `Sleep Disruption: ${Math.round(currentData.sideEffects.sleepDisruption)}%\n`;
+            report += `Heart Rate: ${Math.round(currentData.sideEffects.heartRate)}%\n`;
+            report += `Tolerance: ${Math.round(currentData.sideEffects.toleranceBuildup)}%\n`;
+            
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `caffeine_report_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Report generated', 'success');
+        }
+        
+        function shareResults() {
+            if (!currentData) return;
+            
+            const text = `My CaffeineForge Results:\n` +
+                        `☕ Optimal: ${currentData.optimalCups.toFixed(1)} cups\n` +
+                        `⚡ Peak Alertness: ${Math.round(currentData.maxBenefit)}%\n` +
+                        `⏱️ Half-Life: ${currentData.halfLife}h`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'CaffeineForge Results',
+                    text: text
+                }).then(() => {
+                    showToast('Shared successfully', 'success');
+                }).catch(() => {
+                    copyToClipboard(text);
+                });
+            } else {
+                copyToClipboard(text);
+            }
+        }
+        
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Copied to clipboard', 'info');
+        }
+        
+        function resetToDefaults() {
+            // Reset sliders
+            document.getElementById('baseline').value = 30;
+            document.getElementById('peak').value = 90;
+            document.getElementById('body-mass').value = 70;
+            document.getElementById('steepness').value = 2.0;
+            document.getElementById('saturation').value = 3.0;
+            document.getElementById('negative-slope').value = 18;
+            
+            // Reset toggles
+            document.getElementById('tolerance').checked = false;
+            document.getElementById('sleep-deprived').checked = false;
+            document.getElementById('pregnant').checked = false;
+            
+            // Reset metabolism
+            document.querySelectorAll('.radio-container').forEach(c => c.classList.remove('selected'));
+            document.querySelector('.radio-container[data-metabolism="normal"]').classList.add('selected');
+            params.metabolism = 'normal';
+            
+            // Reset params
+            params.baseline = 30;
+            params.peak = 90;
+            params.bodyMass = 70;
+            params.steepness = 2.0;
+            params.saturation = 3.0;
+            params.negativeSlope = 18;
+            params.tolerance = false;
+            params.sleepDeprived = false;
+            params.pregnant = false;
+            
+            // Update displays
+            ['baseline', 'peak', 'body-mass', 'steepness', 'saturation', 'negative-slope'].forEach(updateSliderDisplay);
+            
+            updateVisualization();
+            showToast('Reset to defaults', 'info');
+        }
+        
+        // ============================================================================
+        // UTILITIES
+        // ============================================================================
+        
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const icon = toast.querySelector('i');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast ${type}`;
+            
+            icon.className = 'fas';
+            switch(type) {
+                case 'success':
+                    icon.classList.add('fa-check-circle');
+                    break;
+                case 'error':
+                    icon.classList.add('fa-exclamation-circle');
+                    break;
+                case 'warning':
+                    icon.classList.add('fa-exclamation-triangle');
+                    break;
+                default:
+                    icon.classList.add('fa-info-circle');
+            }
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+        
+        console.log('%c☕ CaffeineForge Pro', 'font-size: 24px; font-weight: bold; color: #6F4E37;');
+        console.log('%cMobile-optimized caffeine response calculator', 'font-size: 12px; color: #666;');
+        console.log('%c→ Scientific Details tab now available', 'font-size: 11px; color: #2E8B57;');
+    </script>
+</body>
+</html>
