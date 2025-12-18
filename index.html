@@ -20,6 +20,7 @@
             height: 100vh;
             overflow: hidden;
         }
+        /* Persistent Side Navigation */
         nav {
             width: 220px;
             background: var(--panel);
@@ -64,6 +65,7 @@
         }
         iframe.active { display: block; }
         
+        /* Bottom Status Bar for Pipeline Tracking */
         .status-bar {
             height: 40px;
             background: #110c09;
@@ -103,46 +105,53 @@
     <div class="status-bar">
         <div class="pipeline-status">
             <span>System: <strong id="stateStatus" class="indicator">Online</strong></span>
-            <span id="dataFlow">Pipeline: Roast ⮕ Water ⮕ Grind ⮕ Brew ⮕ Bio</span>
+            <span id="dataFlow">Pipeline: Roast ⮕ Water ⮕ Grind ⮕ Brew ⮕ Human</span>
         </div>
         <div id="syncIndicator" class="sync-msg">✓ Pipeline Synchronized</div>
     </div>
 </main>
 
 <script>
+    /**
+     * Navigates between simulator modules and requests a data sync
+     * @param {string} id - The ID prefix of the target forge module
+     */
     function showForge(id) {
-        // Update Nav
+        // Update Side Navigation Visuals
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.innerText.toLowerCase().includes(id));
         if(activeNav) activeNav.classList.add('active');
         
-        // Update Iframe
+        // Switch Iframe Visibility
         document.querySelectorAll('iframe').forEach(el => el.classList.remove('active'));
         const targetFrame = document.getElementById(id + 'Frame');
         targetFrame.classList.add('active');
         
-        // Broadcast Sync Message to the incoming frame
+        // Refresh logic: Broadcast a sync request to the frame being shown
         targetFrame.contentWindow.postMessage({
             type: 'FORGE_SYNC_REQUEST',
             source: 'hub'
         }, '*');
     }
 
+    /**
+     * Global Listener for cross-iframe communication
+     * Handles data exports and broadcasts updates to the entire pipeline
+     */
     window.addEventListener('message', (event) => {
-        // Handle Data Export from any Forge
         if (event.data.type === 'FORGE_EXPORT') {
             const { module, payload } = event.data;
             
-            // Save to LocalStorage for persistence
+            // Persist module data for cross-session and cross-module access
             localStorage.setItem(`FORGE_${module.toUpperCase()}_DATA`, JSON.stringify(payload));
             
-            // Visual Feedback
-            document.getElementById('stateStatus').textContent = `${module.toUpperCase()} Locked`;
+            // Visual Update in Status Bar
+            document.getElementById('stateStatus').textContent = `${module.toUpperCase()} Profile Locked`;
             const sync = document.getElementById('syncIndicator');
             sync.classList.add('active');
-            setTimeout(() => sync.classList.remove('active'), 2000);
+            setTimeout(() => sync.classList.remove('active'), 2500);
             
-            // Trigger auto-refresh for all other iframes
+            // Broadcast the new data to ALL other simulation frames
             document.querySelectorAll('iframe').forEach(frame => {
                 frame.contentWindow.postMessage({
                     type: 'FORGE_PIPELINE_UPDATE',
@@ -150,6 +159,8 @@
                     payload: payload
                 }, '*');
             });
+            
+            console.log(`Master Hub Sync: Received data from ${module}.`, payload);
         }
     });
 </script>
