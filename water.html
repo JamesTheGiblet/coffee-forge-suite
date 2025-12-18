@@ -255,11 +255,13 @@
                         <p class="ion-effect"><span class="positive">+ Chocolate, Creamy</span> • <span class="negative">– Mutes acidity</span></p>
                         <div class="slider-container">
                             <div class="slider-label"><span>Concentration</span><span class="slider-value" id="calcium-value">40 ppm</span></div>
-                            <input type="range" min="0" max="150" value="40" class="slider calcium" id="calcium-slider">
+                            <label for="calcium-slider" class="visually-hidden">Calcium Concentration</label>
+                            <input type="range" min="0" max="150" value="40" class="slider calcium" id="calcium-slider" title="Calcium Concentration">
                         </div>
                         <div class="slider-container">
                             <div class="slider-label"><span>Mg/Ca Ratio</span><span class="slider-value" id="ratio-value">1.0</span></div>
-                            <input type="range" min="0.1" max="3" step="0.1" value="1.0" class="slider magnesium" id="ratio-slider">
+                            <label for="ratio-slider" class="visually-hidden">Mg/Ca Ratio</label>
+                            <input type="range" min="0.1" max="3" step="0.1" value="1.0" class="slider magnesium" id="ratio-slider" title="Mg/Ca Ratio">
                         </div>
                     </div>
                     
@@ -268,7 +270,8 @@
                         <p class="ion-effect"><span class="positive">+ Fruity, Bright</span> • <span class="negative">– Can be sharp</span></p>
                         <div class="slider-container">
                             <div class="slider-label"><span>Concentration</span><span class="slider-value" id="magnesium-value">40 ppm</span></div>
-                            <input type="range" min="0" max="100" value="40" class="slider magnesium" id="magnesium-slider">
+                            <label for="magnesium-slider" class="visually-hidden">Magnesium Concentration</label>
+                            <input type="range" min="0" max="100" value="40" class="slider magnesium" id="magnesium-slider" title="Magnesium Concentration">
                         </div>
                     </div>
                     
@@ -277,7 +280,8 @@
                         <p class="ion-effect"><span class="positive">+ Buffers acidity</span> • <span class="negative">– Mutes brightness</span></p>
                         <div class="slider-container">
                             <div class="slider-label"><span>Buffer Capacity</span><span class="slider-value" id="alkalinity-value">40 ppm</span></div>
-                            <input type="range" min="0" max="200" value="40" class="slider alkalinity" id="alkalinity-slider">
+                            <label for="alkalinity-slider" class="visually-hidden">Alkalinity Buffer Capacity</label>
+                            <input type="range" min="0" max="200" value="40" class="slider alkalinity" id="alkalinity-slider" title="Alkalinity Buffer Capacity">
                         </div>
                     </div>
                     
@@ -286,7 +290,7 @@
                         <p class="ion-effect"><span class="positive">+ Clean base</span> • <span class="negative">– Low extraction power</span></p>
                         <div class="slider-container">
                             <div class="slider-label"><span>Total Dissolved Solids</span><span class="slider-value" id="tds-value">120 ppm</span></div>
-                            <input type="range" min="0" max="300" value="120" class="slider purity" id="tds-slider">
+                            <input type="range" min="0" max="300" value="120" class="slider purity" id="tds-slider" title="Total Dissolved Solids">
                         </div>
                     </div>
                 </div>

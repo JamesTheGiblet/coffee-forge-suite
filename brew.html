@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BrewForge - Coffee Brewing Simulator</title>
     <style>
         * {
@@ -112,7 +112,7 @@
             background: linear-gradient(90deg, #3a2817, #c89665);
             border-radius: 5px;
             outline: none;
-            -webkit-appearance: none;
+            appearance: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -243,6 +243,13 @@
             border-radius: 10px;
             border: 2px solid #c89665;
         }
+        .pressure-label {
+            font-size: 0.8em;
+        }
+        #currentPressure {
+            font-size: 1.5em;
+            color: #c89665;
+        }
 
         .stats-grid {
             display: grid;
@@ -295,6 +302,12 @@
             width: 3px;
             background: white;
             box-shadow: 0 0 5px white;
+        }
+        .marker-18 {
+            left: 18%;
+        }
+        .marker-22 {
+            left: 22%;
         }
 
         .extraction-label {
@@ -429,7 +442,7 @@
                     <span>Water Temperature</span>
                     <span class="value-display" id="tempDisplay">93°C</span>
                 </label>
-                <input type="range" id="waterTemp" min="20" max="100" value="93" oninput="updateParameters()">
+                <input type="range" id="waterTemp" min="20" max="100" value="93" oninput="updateParameters()" title="Water Temperature">
             </div>
 
             <div class="control-group">
@@ -437,7 +450,7 @@
                     <span>Coffee Dose</span>
                     <span class="value-display" id="doseDisplay">18g</span>
                 </label>
-                <input type="range" id="coffeeDose" min="5" max="50" value="18" step="0.5" oninput="updateParameters()">
+                <input type="range" id="coffeeDose" min="5" max="50" value="18" step="0.5" oninput="updateParameters()" title="Coffee Dose">
             </div>
 
             <div class="control-group">
@@ -445,7 +458,7 @@
                     <span>Water Volume</span>
                     <span class="value-display" id="waterDisplay">36ml</span>
                 </label>
-                <input type="range" id="waterVolume" min="30" max="1000" value="36" step="10" oninput="updateParameters()">
+                <input type="range" id="waterVolume" min="30" max="1000" value="36" step="10" oninput="updateParameters()" title="Water Volume">
             </div>
 
             <div class="control-group">
@@ -453,7 +466,7 @@
                     <span>Brew Time</span>
                     <span class="value-display" id="timeDisplay">25s</span>
                 </label>
-                <input type="range" id="brewTime" min="10" max="720" value="25" oninput="updateParameters()">
+                <input type="range" id="brewTime" min="10" max="720" value="25" oninput="updateParameters()" title="Brew Time">
             </div>
 
             <div class="control-group" id="pressureControl">
@@ -461,7 +474,7 @@
                     <span>Pressure</span>
                     <span class="value-display" id="pressureDisplay">9 bar</span>
                 </label>
-                <input type="range" id="pressure" min="0" max="15" value="9" step="0.5" oninput="updateParameters()">
+                <input type="range" id="pressure" min="0" max="15" value="9" step="0.5" oninput="updateParameters()" title="Pressure">
             </div>
 
             <div class="control-group">
@@ -469,7 +482,7 @@
                     <span>Agitation</span>
                     <span class="value-display" id="agitationDisplay">Low</span>
                 </label>
-                <input type="range" id="agitation" min="0" max="100" value="10" oninput="updateParameters()">
+                <input type="range" id="agitation" min="0" max="100" value="10" oninput="updateParameters()" title="Agitation">
             </div>
 
             <div class="control-group">
@@ -477,7 +490,7 @@
                     <span>Water Hardness (ppm)</span>
                     <span class="value-display" id="hardnessDisplay">100</span>
                 </label>
-                <input type="range" id="waterHardness" min="0" max="300" value="100" oninput="updateParameters()">
+                <input type="range" id="waterHardness" min="0" max="300" value="100" oninput="updateParameters()" title="Water Hardness">
             </div>
         </div>
 
@@ -486,8 +499,8 @@
             <h2>Brewing Process</h2>
             <div class="brew-visual" id="brewVisual">
                 <div class="pressure-gauge" id="pressureGauge">
-                    <div style="font-size:0.8em;">Pressure</div>
-                    <div style="font-size:1.5em;color:#c89665;" id="currentPressure">0 bar</div>
+                    <div class="pressure-label">Pressure</div>
+                    <div id="currentPressure">0 bar</div>
                 </div>
                 <div class="water-stream" id="waterStream"></div>
                 <div class="vessel vessel-espresso" id="vessel">
@@ -510,10 +523,10 @@
             <h2>Extraction Analysis</h2>
             
             <div class="extraction-bar">
-                <div class="extraction-marker" style="left:18%;">
+                <div class="extraction-marker marker-18">
                     <div class="extraction-label">18%</div>
                 </div>
-                <div class="extraction-marker" style="left:22%;">
+                <div class="extraction-marker marker-22">
                     <div class="extraction-label">22%</div>
                 </div>
                 <div class="extraction-fill" id="extractionFill" style="width:20%;">

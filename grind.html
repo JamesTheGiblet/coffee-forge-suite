@@ -82,7 +82,7 @@
             background: linear-gradient(90deg, #2a1810, #a67c52);
             border-radius: 5px;
             outline: none;
-            -webkit-appearance: none;
+            appearance: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -462,35 +462,35 @@
                         <span>Target Particle Size</span>
                         <span class="value-display" id="targetSizeValue">250 μm</span>
                     </label>
-                    <input type="range" id="targetSize" min="100" max="2000" step="50" value="250">
+                    <input type="range" id="targetSize" min="100" max="2000" step="50" value="250" title="Set target particle size in micrometers">
                 </div>
                 <div class="control-group">
                     <label>
                         <span>Burr Gap</span>
                         <span class="value-display" id="burrGapValue">0.25 mm</span>
                     </label>
-                    <input type="range" id="burrGap" min="0.1" max="2.0" step="0.05" value="0.25">
+                    <input type="range" id="burrGap" min="0.1" max="2.0" step="0.05" value="0.25" title="Set burr gap in millimeters">
                 </div>
                 <div class="control-group">
                     <label>
                         <span>RPM (Speed)</span>
                         <span class="value-display" id="rpmValue">1200 RPM</span>
                     </label>
-                    <input type="range" id="rpm" min="400" max="2000" step="100" value="1200">
+                    <input type="range" id="rpm" min="400" max="2000" step="100" value="1200" title="Set grinder RPM (Speed)">
                 </div>
                 <div class="control-group">
                     <label>
                         <span>Grind Time</span>
                         <span class="value-display" id="grindTimeValue">15 sec</span>
                     </label>
-                    <input type="range" id="grindTime" min="5" max="60" step="5" value="15">
+                    <input type="range" id="grindTime" min="5" max="60" step="5" value="15" title="Set grind time in seconds">
                 </div>
                 <div class="control-group">
                     <label>
                         <span>Burr Temperature</span>
                         <span class="value-display" id="burrTempValue">25°C</span>
                     </label>
-                    <input type="range" id="burrTemp" min="20" max="80" step="5" value="25">
+                    <input type="range" id="burrTemp" min="20" max="80" step="5" value="25" title="Set burr temperature in degrees Celsius">
                 </div>
             </div>
         </div>

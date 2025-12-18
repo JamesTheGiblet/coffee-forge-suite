@@ -82,7 +82,7 @@
             background: linear-gradient(90deg, #3a2817, #d4a574);
             border-radius: 5px;
             outline: none;
-            -webkit-appearance: none;
+            appearance: none;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -320,21 +320,21 @@
                         <span>Bean Density (Altitude)</span>
                         <span class="value-display" id="densityValue">0.7 g/cm³</span>
                     </label>
-                    <input type="range" id="density" min="0.5" max="0.9" step="0.05" value="0.7">
+                    <input type="range" id="density" min="0.5" max="0.9" step="0.05" value="0.7" title="Bean Density (Altitude)">
                 </div>
                 <div class="control-group">
                     <label>
                         <span>Moisture Content</span>
                         <span class="value-display" id="moistureValue">11%</span>
                     </label>
-                    <input type="range" id="moisture" min="8" max="14" step="0.5" value="11">
+                    <input type="range" id="moisture" min="8" max="14" step="0.5" value="11" title="Moisture Content">
                 </div>
                 <div class="control-group">
                     <label>
                         <span>Batch Size</span>
                         <span class="value-display" id="batchValue">500g</span>
                     </label>
-                    <input type="range" id="batch" min="100" max="1000" step="50" value="500">
+                    <input type="range" id="batch" min="100" max="1000" step="50" value="500" title="Batch Size">
                 </div>
             </div>
         </div>
@@ -347,21 +347,21 @@
                         <span>Target Temperature</span>
                         <span class="value-display" id="targetTempValue">220°C</span>
                     </label>
-                    <input type="range" id="targetTemp" min="190" max="240" step="5" value="220">
+                    <input type="range" id="targetTemp" min="190" max="240" step="5" value="220" title="Target Temperature">
                 </div>
                 <div class="control-group">
                     <label>
                         <span>Airflow Rate</span>
                         <span class="value-display" id="airflowValue">50%</span>
                     </label>
-                    <input type="range" id="airflow" min="30" max="80" step="5" value="50">
+                    <input type="range" id="airflow" min="30" max="80" step="5" value="50" title="Airflow Rate">
                 </div>
                 <div class="control-group">
                     <label>
                         <span>Drum Speed</span>
                         <span class="value-display" id="drumSpeedValue">50 RPM</span>
                     </label>
-                    <input type="range" id="drumSpeed" min="40" max="70" step="5" value="50">
+                    <input type="range" id="drumSpeed" min="40" max="70" step="5" value="50" title="Drum Speed">
                 </div>
             </div>
         </div>

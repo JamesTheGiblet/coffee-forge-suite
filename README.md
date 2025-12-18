@@ -1,4 +1,4 @@
-☕ The Coffee Forge Suite: A Deterministic Coffee Science Ecosystem
+# ☕ The Coffee Forge Suite: A Deterministic Coffee Science Ecosystem
 
 The Coffee Forge Suite is an end-to-end simulation pipeline that models the entire lifecycle of a coffee bean—from its chemical transformation in the roaster to its pharmacokinetic impact on the human brain.
 
@@ -17,7 +17,17 @@ The suite is designed as a linear data chain. The output of one module serves as
 
     Handoff: Exports bean brittleness and density to the next stage.
 
-2. ⚙️ GrindForge (The Physical Bridge)
+2. 💧 WaterForge (The Solvent Foundation)
+
+    Focus: Water Chemistry and Mineralization.
+
+    Chemistry: Allows customization of mineral content (Magnesium, Calcium, Bicarbonates) to simulate "soft" vs. "hard" water profiles.
+
+    Standards: References SCAA water quality standards for optimal extraction potential.
+
+    Handoff: Exports Total Hardness (ppm) and Alkalinity to the extraction physics engine.
+
+3. ⚙️ GrindForge (The Physical Bridge)
 
     Focus: Particle Geometry and Distribution.
 
@@ -27,7 +37,7 @@ The suite is designed as a linear data chain. The output of one module serves as
 
     Handoff: Exports surface area index and flow resistance to the brewing model.
 
-3. ☕ BrewForge (The Extraction Physics)
+4. ☕ BrewForge (The Extraction Physics)
 
     Focus: Fluid Dynamics and Solvation.
 
@@ -37,7 +47,7 @@ The suite is designed as a linear data chain. The output of one module serves as
 
     Handoff: Exports the final Caffeine Dosage (mg) and Bioavailability markers.
 
-4. 🧬 CaffeineForge Pro (The Biological End)
+5. 🧬 CaffeineForge Pro (The Biological End)
 
     Focus: Pharmacokinetics and Human Metabolism.
 
@@ -66,3 +76,22 @@ The models implemented in this suite are based on established specialty coffee r
     Extraction: Utilizes the SCAA Extraction Control Chart standards (18%–22% yield).
 
     Pharmacokinetics: Modeled on the Cornelis et al. (2016) meta-analysis of CYP1A2 genotype associations and FDA caffeine safety guidelines.
+
+🚀 Getting Started
+
+To run the suite locally, you will need a local web server to handle the cross-origin security policies required for `Window.postMessage()`.
+
+1. **Clone the repository**
+
+    git clone [https://github.com/username/coffee-forge-suite.git](https://github.com/username/coffee-forge-suite.git)
+
+        git clone https://github.com/username/coffee-forge-suite.git
+
+2. **Run with a Local Server**
+    * **Python**: `python -m http.server`
+    * **Node.js**: `npx serve`
+    * **VS Code**: Right-click `index.html` and select "Open with Live Server".
+
+📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
