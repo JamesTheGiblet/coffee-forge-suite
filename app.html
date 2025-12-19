@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coffee Forge Pro - Integrated Simulation Suite</title>
+    <style>
+        :root {
+            --bg: #0a0604;
+            --panel: #1a1410;
+            --accent: #a67c52;
+            --text: #f5e6d3;
+            --success: #43a047;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* Persistent Side Navigation */
+        nav {
+            width: 220px;
+            background: var(--panel);
+            border-right: 2px solid #3a2817;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+        .nav-header {
+            padding: 0 25px 20px;
+            font-weight: bold;
+            color: var(--accent);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: 0.3s;
+            color: #8a6d4f;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-item:hover { background: rgba(166, 124, 82, 0.1); }
+        .nav-item.active {
+            border-left-color: var(--accent);
+            color: var(--accent);
+            background: rgba(166, 124, 82, 0.2);
+        }
+        main { flex: 1; position: relative; display: flex; flex-direction: column; }
+        .frame-container { flex: 1; position: relative; }
+        iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+        }
+        iframe.active { display: block; }
+        
+        /* Bottom Status Bar for Pipeline Tracking */
+        .status-bar {
+            height: 40px;
+            background: #110c09;
+            padding: 0 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid #3a2817;
+        }
+        .pipeline-status { display: flex; gap: 15px; }
+        .indicator { color: var(--accent); font-weight: bold; }
+        .sync-msg { color: var(--success); opacity: 0; transition: 0.5s; }
+        .sync-msg.active { opacity: 1; }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            nav { 
+                width: 100%; 
+                height: auto; 
+                flex-direction: row; 
+                overflow-x: auto; 
+                padding: 5px; 
+                border-right: none; 
+                border-bottom: 2px solid #3a2817;
+                flex-shrink: 0;
+            }
+            .nav-header { display: none; }
+            .nav-item { 
+                padding: 10px 15px; 
+                white-space: nowrap; 
+                border-left: none; 
+                border-bottom: 3px solid transparent;
+                font-size: 0.9rem;
+            }
+            .nav-item.active {
+                border-left-color: transparent;
+                border-bottom-color: var(--accent);
+            }
+            .status-bar { font-size: 0.7rem; padding: 0 10px; }
+            
+            /* Mobile Optimization Fixes */
+            button {
+                min-height: 44px; /* iOS minimum */
+                font-size: 1rem;
+            }
+            
+            input[type="range"] {
+                height: 44px;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            input[type="range"]::-webkit-slider-thumb {
+                width: 28px;
+                height: 28px;
+            }
+            
+            /* Larger nav items */
+            .nav-item {
+                padding: 20px 25px;
+                font-size: 1rem;
+            }
+            
+            /* Scrollable canvas */
+            .canvas-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        /* Prevent zoom on input focus (iOS) */
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-header">COFFEE FORGE PRO</div>
+    <a href="#" class="nav-item" onclick="showForge('dashboard')">📊 Dashboard</a>
+    <a href="#" class="nav-item" onclick="showForge('recipes')">📖 Recipe Book</a>
+    <a href="#" class="nav-item active" onclick="showForge('roast')">🔥 RoastForge</a>
+    <a href="#" class="nav-item" onclick="showForge('water')">💧 WaterForge</a>
+    <a href="#" class="nav-item" onclick="showForge('grind')">⚙️ GrindForge</a>
+    <a href="#" class="nav-item" onclick="showForge('brew')">☕ BrewForge</a>
+    <a href="#" class="nav-item" onclick="showForge('milk')">🥛 MilkForge</a>
+    <a href="#" class="nav-item" onclick="showForge('caffeine')">🧬 CaffeineForge</a>
+    <a href="#" class="nav-item" onclick="showForge('tasting')">👅 TasteForge</a>
+</nav>
+
+<main>
+    <div class="frame-container" id="forgeContainer">
+        <iframe id="dashboardFrame" src="dashboard.html" title="Forge Dashboard"></iframe>
+        <iframe id="recipesFrame" src="recipes.html" title="Recipe Book"></iframe>
+        <iframe id="roastFrame" src="roast.html" class="active" title="RoastForge Simulator"></iframe>
+        <iframe id="waterFrame" src="water.html" title="WaterForge Simulator"></iframe>
+        <iframe id="grindFrame" src="grind.html" title="GrindForge Simulator"></iframe>
+        <iframe id="brewFrame" src="brew.html" title="BrewForge Simulator"></iframe>
+        <iframe id="milkFrame" src="milk.html" title="MilkForge Simulator"></iframe>
+        <iframe id="caffeineFrame" src="caffeine.html" title="CaffeineForge Simulator"></iframe>
+        <iframe id="tastingFrame" src="tasting.html" title="TasteForge Simulator"></iframe>
+    </div>
+    
+    <div class="status-bar">
+        <div class="pipeline-status">
+            <span>System: <strong id="stateStatus" class="indicator">Online</strong></span>
+            <span id="dataFlow">Pipeline: Roast ⮕ Water ⮕ Grind ⮕ Brew ⮕ Milk ⮕ Human ⮕ Taste</span>
+        </div>
+        <div id="syncIndicator" class="sync-msg">✓ Pipeline Synchronized</div>
+    </div>
+</main>
+
+<script>
+    /**
+     * Navigates between simulator modules and requests a data sync
+     * @param {string} id - The ID prefix of the target forge module
+     */
+    function showForge(id) {
+        // Update Side Navigation Visuals
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const activeNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.innerText.toLowerCase().includes(id));
+        if(activeNav) activeNav.classList.add('active');
+        
+        // Switch Iframe Visibility
+        document.querySelectorAll('iframe').forEach(el => el.classList.remove('active'));
+        const targetFrame = document.getElementById(id + 'Frame');
+        targetFrame.classList.add('active');
+        
+        // Refresh logic: Broadcast a sync request to the frame being shown
+        targetFrame.contentWindow.postMessage({
+            type: 'FORGE_SYNC_REQUEST',
+            source: 'hub'
+        }, '*');
+    }
+
+    /**
+     * Global Listener for cross-iframe communication
+     * Handles data exports and broadcasts updates to the entire pipeline
+     */
+    window.addEventListener('message', (event) => {
+        if (event.data.type === 'FORGE_EXPORT') {
+            const { module, payload } = event.data;
+            
+            // Persist module data for cross-session and cross-module access
+            localStorage.setItem(`FORGE_${module.toUpperCase()}_DATA`, JSON.stringify(payload));
+            
+            // Visual Update in Status Bar
+            document.getElementById('stateStatus').textContent = `${module.toUpperCase()} Profile Locked`;
+            const sync = document.getElementById('syncIndicator');
+            sync.classList.add('active');
+            setTimeout(() => sync.classList.remove('active'), 2500);
+            
+            // Broadcast the new data to ALL other simulation frames
+            document.querySelectorAll('iframe').forEach(frame => {
+                frame.contentWindow.postMessage({
+                    type: 'FORGE_PIPELINE_UPDATE',
+                    module: module,
+                    payload: payload
+                }, '*');
+            });
+            
+            console.log(`Master Hub Sync: Received data from ${module}.`, payload);
+        }
+    });
+</script>
+<script src="analytics.js"></script>
+</body>
+</html>
