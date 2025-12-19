@@ -497,33 +497,37 @@
             });
         }
         
+        function processBrewData(payload) {
+            const method = payload.brewProfile.method;
+            const statusEl = document.getElementById('importStatus');
+            
+            let msg = `Synced with BrewForge: ${method}. `;
+            
+            if (method === 'espresso' || method === 'moka') {
+                // Latte/Cappuccino settings
+                document.getElementById('startVol').value = 220;
+                document.getElementById('aeration').value = 40; // Latte art texture
+                msg += "Optimized for Latte Art (Microfoam).";
+            } else if (method === 'french' || method === 'pourover' || method === 'drip') {
+                // Cafe au Lait settings
+                document.getElementById('startVol').value = 150;
+                document.getElementById('aeration').value = 20; // Less foam
+                msg += "Optimized for Café au Lait (Light Foam).";
+            } else {
+                msg += "Standard milk profile.";
+            }
+            
+            statusEl.textContent = msg;
+            updateUI();
+        }
+
         // Pipeline Listener
         window.addEventListener('message', (event) => {
             if (event.data.type === 'FORGE_PIPELINE_UPDATE') {
                 const { module, payload } = event.data;
                 
                 if (module === 'BREW') {
-                    const method = payload.brewProfile.method;
-                    const statusEl = document.getElementById('importStatus');
-                    
-                    let msg = `Synced with BrewForge: ${method}. `;
-                    
-                    if (method === 'espresso' || method === 'moka') {
-                        // Latte/Cappuccino settings
-                        document.getElementById('startVol').value = 220;
-                        document.getElementById('aeration').value = 40; // Latte art texture
-                        msg += "Optimized for Latte Art (Microfoam).";
-                    } else if (method === 'french' || method === 'pourover' || method === 'drip') {
-                        // Cafe au Lait settings
-                        document.getElementById('startVol').value = 150;
-                        document.getElementById('aeration').value = 20; // Less foam
-                        msg += "Optimized for Café au Lait (Light Foam).";
-                    } else {
-                        msg += "Standard milk profile.";
-                    }
-                    
-                    statusEl.textContent = msg;
-                    updateUI();
+                    processBrewData(payload);
                 }
             }
         });
@@ -543,6 +547,12 @@
         });
 
         updateUI(); initCanvas();
+        
+        // Check for existing brew data
+        const storedBrew = localStorage.getItem('FORGE_BREW_DATA');
+        if (storedBrew) {
+            processBrewData(JSON.parse(storedBrew));
+        }
     </script>
 </body>
 </html>

@@ -1147,69 +1147,76 @@
             }, '*');
         }
         
+        function processPipelineData(module, payload) {
+            const importDisplay = document.getElementById('roastData');
+            
+            if (module === 'ROAST') {
+                // Update internal roast profile for physics simulation
+                roastProfile = {
+                    level: payload.roastProfile.level,
+                    brittleness: payload.roastProfile.level === 'Light' ? 0.9 : payload.roastProfile.level === 'Dark' ? 0.4 : 0.7,
+                    density: 0.65, 
+                    caffeineContent: parseInt(payload.caffeineForgeData.caffeinePerGram) || 95
+                };
+                
+                let msg = `Roast: ${payload.roastProfile.level}. `;
+                
+                // Auto-adjust grind based on roast level
+                const currentSize = parseInt(document.getElementById('targetSize').value);
+                if (payload.roastProfile.level === 'Dark') {
+                    const newSize = Math.min(2000, currentSize + 100);
+                    document.getElementById('targetSize').value = newSize;
+                    document.getElementById('targetSizeValue').textContent = newSize + ' μm';
+                    msg += `Beans are brittle. Coarsening grind (+100μm).`;
+                } else if (payload.roastProfile.level === 'Light') {
+                    const newSize = Math.max(100, currentSize - 50);
+                    document.getElementById('targetSize').value = newSize;
+                    document.getElementById('targetSizeValue').textContent = newSize + ' μm';
+                    msg += `Beans are dense. Fining grind (-50μm).`;
+                }
+                
+                importDisplay.textContent = msg;
+                updateParameters();
+            }
+            
+            if (module === 'WATER') {
+                const hardness = parseInt(payload.waterProfile.totalHardness);
+                const currentSize = parseInt(document.getElementById('targetSize').value);
+                let newSize = currentSize;
+                let msg = `Water Hardness: ${hardness}ppm. `;
+                
+                if (hardness > 150) {
+                    newSize = Math.min(2000, currentSize + 50);
+                    msg += `High mineral content. Coarsening (+50μm) to balance extraction.`;
+                } else if (hardness < 50) {
+                    newSize = Math.max(100, currentSize - 50);
+                    msg += `Low mineral content. Fining (-50μm) to aid extraction.`;
+                } else {
+                    msg += `Optimal range. Grind maintained.`;
+                }
+                
+                document.getElementById('targetSize').value = newSize;
+                document.getElementById('targetSizeValue').textContent = newSize + ' μm';
+                
+                // Append to display
+                if (!importDisplay.textContent.includes('Water')) {
+                    if (importDisplay.textContent.includes('Waiting')) {
+                        importDisplay.textContent = msg;
+                    } else {
+                        importDisplay.textContent += `\n\n${msg}`;
+                    }
+                } else {
+                    // Replace existing water msg if present
+                    importDisplay.textContent += `\n${msg}`;
+                }
+                updateParameters();
+            }
+        }
+
         // Pipeline Listener
         window.addEventListener('message', (event) => {
             if (event.data.type === 'FORGE_PIPELINE_UPDATE') {
-                const { module, payload } = event.data;
-                const importDisplay = document.getElementById('roastData');
-                
-                if (module === 'ROAST') {
-                    // Update internal roast profile for physics simulation
-                    roastProfile = {
-                        level: payload.roastProfile.level,
-                        brittleness: payload.roastProfile.level === 'Light' ? 0.9 : payload.roastProfile.level === 'Dark' ? 0.4 : 0.7,
-                        density: 0.65, 
-                        caffeineContent: parseInt(payload.caffeineForgeData.caffeinePerGram) || 95
-                    };
-                    
-                    let msg = `Roast: ${payload.roastProfile.level}. `;
-                    
-                    // Auto-adjust grind based on roast level
-                    const currentSize = parseInt(document.getElementById('targetSize').value);
-                    if (payload.roastProfile.level === 'Dark') {
-                        const newSize = Math.min(2000, currentSize + 100);
-                        document.getElementById('targetSize').value = newSize;
-                        document.getElementById('targetSizeValue').textContent = newSize + ' μm';
-                        msg += `Beans are brittle. Coarsening grind (+100μm).`;
-                    } else if (payload.roastProfile.level === 'Light') {
-                        const newSize = Math.max(100, currentSize - 50);
-                        document.getElementById('targetSize').value = newSize;
-                        document.getElementById('targetSizeValue').textContent = newSize + ' μm';
-                        msg += `Beans are dense. Fining grind (-50μm).`;
-                    }
-                    
-                    importDisplay.textContent = msg;
-                    updateParameters();
-                }
-                
-                if (module === 'WATER') {
-                    const hardness = parseInt(payload.waterProfile.totalHardness);
-                    const currentSize = parseInt(document.getElementById('targetSize').value);
-                    let newSize = currentSize;
-                    let msg = `Water Hardness: ${hardness}ppm. `;
-                    
-                    if (hardness > 150) {
-                        newSize = Math.min(2000, currentSize + 50);
-                        msg += `High mineral content. Coarsening (+50μm) to balance extraction.`;
-                    } else if (hardness < 50) {
-                        newSize = Math.max(100, currentSize - 50);
-                        msg += `Low mineral content. Fining (-50μm) to aid extraction.`;
-                    } else {
-                        msg += `Optimal range. Grind maintained.`;
-                    }
-                    
-                    document.getElementById('targetSize').value = newSize;
-                    document.getElementById('targetSizeValue').textContent = newSize + ' μm';
-                    
-                    // Append to display
-                    if (!importDisplay.textContent.includes('Water')) {
-                        importDisplay.textContent += `\n\n${msg}`;
-                    } else {
-                        // Replace existing water msg if present (simple append for now)
-                        importDisplay.textContent += `\n${msg}`;
-                    }
-                    updateParameters();
-                }
+                processPipelineData(event.data.module, event.data.payload);
             }
             
             if (event.data.type === 'FORGE_SYNC_REQUEST') {
@@ -1235,6 +1242,17 @@
         updateParameters();
         updateDistributionChart();
         updateHistogram();
+        
+        // Check for existing pipeline data
+        const storedRoast = localStorage.getItem('FORGE_ROAST_DATA');
+        if (storedRoast) {
+            processPipelineData('ROAST', JSON.parse(storedRoast));
+        }
+        
+        const storedWater = localStorage.getItem('FORGE_WATER_DATA');
+        if (storedWater) {
+            processPipelineData('WATER', JSON.parse(storedWater));
+        }
     </script>
 </body>
 </html>

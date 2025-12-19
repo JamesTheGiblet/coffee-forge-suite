@@ -1826,6 +1826,21 @@
             initializeControls();
             initializeDrinkPresets();
             updateVisualization();
+            
+            // Check for existing brew data
+            const storedBrew = localStorage.getItem('FORGE_BREW_DATA');
+            if (storedBrew) {
+                importedBrew = JSON.parse(storedBrew);
+                const p = importedBrew;
+                
+                const msg = `Incoming Brew: ${p.brewProfile.method}\n` +
+                           `Volume: ${p.brewProfile.waterVolume}\n` +
+                           `Extraction Efficiency: ${p.caffeineForgeData.extractionEfficiency}\n` +
+                           `Calculated Caffeine: ${p.caffeineForgeData.estimatedCaffeine}`;
+                
+                document.getElementById('importStatus').innerText = msg;
+                document.getElementById('importBtn').style.display = 'block';
+            }
         });
         
         function initializeTabs() {

@@ -283,6 +283,14 @@
         window.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') closePremiumModal();
         });
+
+        // Check for existing data on load
+        const storedBrew = localStorage.getItem('FORGE_BREW_DATA');
+        if (storedBrew) {
+            const payload = JSON.parse(storedBrew);
+            document.getElementById('importStatus').innerText = `Brew: ${payload.brewProfile.method}, TDS: ${payload.brewProfile.tds}`;
+        }
+
         window.addEventListener('message', (event) => { if (event.data.type === 'FORGE_PIPELINE_UPDATE' && event.data.module === 'BREW') { document.getElementById('importStatus').innerText = `Brew: ${event.data.payload.brewProfile.method}, TDS: ${event.data.payload.brewProfile.tds}`; } });
         updateScore();
     </script>
